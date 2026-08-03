@@ -41,6 +41,26 @@ export type WeatherPayload = {
 	isDay: boolean;
 };
 
+/** UI temperature preference — also drives wind speed units (°F → mph, °C → km/h). */
+export type TempUnit = "C" | "F";
+
+export const TEMP_UNIT_KEY = "betterWeather:tempUnit";
+
+/** Open-Meteo returns wind in km/h (`wind_speed_unit=kmh`); stored as-is on WeatherPayload.wind. */
+const KMH_TO_MPH = 0.621371;
+
+export function celsiusToDisplay(celsius: number, unit: TempUnit): number {
+	return unit === "F" ? celsius * (9 / 5) + 32 : celsius;
+}
+
+export function windKmhToDisplay(kmh: number, unit: TempUnit): number {
+	return unit === "F" ? kmh * KMH_TO_MPH : kmh;
+}
+
+export function windUnitLabel(unit: TempUnit): string {
+	return unit === "F" ? "mph" : "km/h";
+}
+
 export type GeoPayload = {
 	city: string;
 	region?: string;
