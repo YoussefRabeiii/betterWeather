@@ -22,6 +22,18 @@ type WeatherStageProps = {
 
 const emptySubscribe = () => () => {};
 
+const MOBILE_MQ = "(max-width: 1023px)";
+
+function subscribeMobile(onStoreChange: () => void) {
+	const mq = window.matchMedia(MOBILE_MQ);
+	mq.addEventListener("change", onStoreChange);
+	return () => mq.removeEventListener("change", onStoreChange);
+}
+
+function getIsMobile() {
+	return window.matchMedia(MOBILE_MQ).matches;
+}
+
 function stageStyle(className?: string) {
 	return {
 		className: className ?? "h-full w-full",
@@ -78,8 +90,8 @@ function Scene({
 	return (
 		<div className="relative h-full w-full overflow-hidden" style={style}>
 			<div className="sky-noise absolute inset-0" aria-hidden />
-			{/* Scrollport lives here so the stage canvas stays viewport-fixed. */}
-			<div className="relative z-10 h-full min-h-0 w-full overflow-x-clip overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable]">
+			{/* Scrollport: content can grow past the viewport so mobile can scroll. */}
+			<div className="relative z-10 h-full min-h-0 w-full overflow-x-clip overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]">
 				{children}
 			</div>
 		</div>
@@ -149,9 +161,15 @@ const CLOUDS_OPTIONS = {
 	quality: 0.85,
 };
 
-function effectOptions(weather: WeatherPayload, reducedMotion: boolean) {
+function effectOptions(
+	weather: WeatherPayload,
+	reducedMotion: boolean,
+	isMobile: boolean,
+) {
 	const precipBoost = Math.min(1, weather.precip / 5);
 	const windBoost = Math.min(1, weather.wind / 80);
+	const brushScale = isMobile ? 0.55 : 1;
+	const dropScale = isMobile ? 0.7 : 1;
 
 	const blazeHeat = {
 		height: 0.97,
@@ -186,7 +204,8 @@ function effectOptions(weather: WeatherPayload, reducedMotion: boolean) {
 			speed: reducedMotion ? 0 : 0.85,
 			amplitude: reducedMotion ? 0 : 12,
 			drape: 16,
-			brush: 0.35,
+			brush: 0.35 * brushScale,
+			brushSize: isMobile ? 90 : 150,
 			cornerRadius: 0,
 			light: 0.45,
 			sheen: 0.25,
@@ -207,7 +226,8 @@ function effectOptions(weather: WeatherPayload, reducedMotion: boolean) {
 			speed: reducedMotion ? 0 : 0.7,
 			amplitude: reducedMotion ? 0 : 10,
 			drape: 14,
-			brush: 0.25,
+			brush: 0.25 * brushScale,
+			brushSize: isMobile ? 80 : 140,
 			cornerRadius: 0,
 			light: 0.4,
 			sheen: 0.2,
@@ -221,9 +241,9 @@ function effectOptions(weather: WeatherPayload, reducedMotion: boolean) {
 		droplets: {
 			intensity: 0.75 + precipBoost * 0.35,
 			speed: reducedMotion ? 0 : 1,
-			scale: 0.38,
-			dropWidth: 1.15,
-			dropLength: 1.25,
+			scale: isMobile ? 0.28 : 0.38,
+			dropWidth: 1.15 * dropScale,
+			dropLength: 1.25 * dropScale,
 			refraction: 0.42,
 			blur: 0.2,
 			vignette: 0.12,
@@ -233,9 +253,9 @@ function effectOptions(weather: WeatherPayload, reducedMotion: boolean) {
 			tint: [1, 1, 1] as [number, number, number],
 			tintStrength: 0,
 			interactive: !reducedMotion,
-			interactionRadius: 0.32,
-			interactionStrength: 0.65,
-			interactionDistortion: 3.2,
+			interactionRadius: isMobile ? 0.18 : 0.32,
+			interactionStrength: isMobile ? 0.5 : 0.65,
+			interactionDistortion: isMobile ? 2.4 : 3.2,
 		},
 		frost: {
 			frost: 0.08,
@@ -255,7 +275,7 @@ function effectOptions(weather: WeatherPayload, reducedMotion: boolean) {
 			detail: 2.2,
 			textureScale: 2,
 			fresnel: 0.9,
-			meltRadius: 0.28,
+			meltRadius: isMobile ? 0.16 : 0.28,
 			meltNoise: 0.3,
 			meltStrength: 0.8,
 			refreeze: 10,
@@ -265,6 +285,8 @@ function effectOptions(weather: WeatherPayload, reducedMotion: boolean) {
 			opacity: 0.72,
 			shimmer: reducedMotion ? 0 : 0.25,
 			quality: 1,
+			// Keep footer chrome readable — center stays fully iced.
+			footerClear: 0.22,
 		},
 		cloth: {
 			pin: "top" as const,
@@ -272,8 +294,8 @@ function effectOptions(weather: WeatherPayload, reducedMotion: boolean) {
 			speed: reducedMotion ? 0 : 1.15 + windBoost,
 			amplitude: reducedMotion ? 0 : 26 + windBoost * 12,
 			drape: 32,
-			brush: reducedMotion ? 0 : 1.05,
-			brushSize: 175,
+			brush: reducedMotion ? 0 : 1.05 * brushScale,
+			brushSize: isMobile ? 95 : 175,
 			cornerRadius: 0,
 			light: 0.65,
 			sheen: 0.4,
@@ -301,6 +323,11 @@ export function WeatherStage({
 }: WeatherStageProps) {
 	const layout = stageStyle(className);
 	const reducedMotion = usePrefersReducedMotion();
+	const isMobile = useSyncExternalStore(
+		subscribeMobile,
+		getIsMobile,
+		() => false,
+	);
 	const native = useSyncExternalStore(
 		emptySubscribe,
 		supportsHtmlInCanvas,
@@ -316,7 +343,7 @@ export function WeatherStage({
 	}
 
 	const effect = effectOverride ?? weather.effect;
-	const opts = effectOptions(weather, reducedMotion);
+	const opts = effectOptions(weather, reducedMotion, isMobile);
 
 	const scene = (extra?: { photo?: string; overlay?: string }) => (
 		<Scene backdrop={backdrop} photo={extra?.photo} overlay={extra?.overlay}>

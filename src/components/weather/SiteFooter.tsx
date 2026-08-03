@@ -2,13 +2,13 @@ import type { ReactNode } from "react";
 
 const TWITTER = "https://x.com/youssefRabeiii";
 
-function Dot() {
-	return (
-		<span className="mx-1.5 text-white/30" aria-hidden>
-			·
-		</span>
-	);
-}
+const BUILT_WITH = [
+	{ href: "https://cursor.com", label: "Cursor" },
+	{ href: "https://grok.com", label: "Grok" },
+	{ href: "https://canvasui.dev/", label: "Canvas UI" },
+	{ href: "https://cobe.vercel.app/", label: "COBE" },
+	{ href: "https://bigsoundbank.com/", label: "BigSoundBank" },
+] as const;
 
 function CreditLink({
 	href,
@@ -22,7 +22,7 @@ function CreditLink({
 			href={href}
 			target="_blank"
 			rel="noopener noreferrer"
-			className="text-white/75 no-underline transition hover:text-white">
+			className="text-white/70 no-underline transition hover:text-white">
 			{children}
 		</a>
 	);
@@ -34,41 +34,40 @@ type SiteFooterProps = {
 
 export function SiteFooter({ glow }: SiteFooterProps) {
 	return (
-		<footer className="mx-auto w-full max-w-3xl px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-6 sm:px-6 lg:pb-4">
+		<footer className="mx-auto flex w-full justify-center px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-4 sm:px-6 lg:pb-3 lg:pt-5">
 			<div
-				className="rounded-2xl border px-4 py-4 text-center text-[11px] leading-relaxed text-white/55 shadow-xl backdrop-blur-xl sm:px-6 sm:py-5 sm:text-xs"
+				className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border px-3.5 py-2 text-[11px] leading-none text-white/50 shadow-xl sm:gap-x-2.5 sm:px-4 sm:py-2.5 sm:text-xs"
 				style={{
-					background: "rgba(8, 12, 18, 0.72)",
-					borderColor: "rgba(255,255,255,0.12)",
+					/* No backdrop-blur — it breaks inside html-in-canvas capture. */
+					background: "rgba(8, 12, 18, 0.94)",
+					borderColor: "rgba(255,255,255,0.14)",
 					boxShadow: glow
-						? `0 12px 36px ${glow}`
-						: "0 12px 36px rgba(0,0,0,0.3)",
+						? `0 10px 28px ${glow}`
+						: "0 10px 28px rgba(0,0,0,0.32)",
 				}}>
-				<p>
-					spun into the sky by{" "}
+				<p className="inline-flex items-center whitespace-nowrap">
+					<span className="text-white/45">spun into the sky by</span>
 					<a
 						href={TWITTER}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="font-bold text-white/90 underline underline-offset-2 transition hover:text-white">
+						className="ml-1.5 font-semibold text-white/90 underline underline-offset-2 transition hover:text-white">
 						Youssef Rabei
 					</a>
 				</p>
-				<p className="mt-2 flex flex-wrap items-center justify-center">
-					<span>built with</span>
-					<span className="ml-1 inline-flex flex-wrap items-center justify-center">
-						<CreditLink href="https://cursor.com">Cursor</CreditLink>
-						<Dot />
-						<CreditLink href="https://grok.com">Grok</CreditLink>
-						<Dot />
-						<CreditLink href="https://canvasui.dev/">Canvas UI</CreditLink>
-						<Dot />
-						<CreditLink href="https://cobe.vercel.app/">COBE</CreditLink>
-						<Dot />
-						<CreditLink href="https://bigsoundbank.com/">
-							BigSoundBank (CC0)
-						</CreditLink>
-					</span>
+				<span className="hidden h-3 w-px bg-white/15 sm:block" aria-hidden />
+				<p className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
+					<span className="text-white/40">built with</span>
+					{BUILT_WITH.map((item, i) => (
+						<span key={item.href} className="inline-flex items-center">
+							{i > 0 ? (
+								<span className="mr-1.5 text-white/25" aria-hidden>
+									·
+								</span>
+							) : null}
+							<CreditLink href={item.href}>{item.label}</CreditLink>
+						</span>
+					))}
 				</p>
 			</div>
 		</footer>

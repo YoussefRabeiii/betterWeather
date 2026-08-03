@@ -20,26 +20,31 @@ type WeatherPanelProps = {
 	loading?: boolean;
 };
 
+/** Solid-enough fill — translucent surfaces + canvas blur passes paint a huge haze band. */
+function opaqueSurface(surface: string, alpha = 0.96): string {
+	const m = surface.match(
+		/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*[\d.]+)?\s*\)/i,
+	);
+	if (!m) return surface;
+	return `rgba(${m[1]}, ${m[2]}, ${m[3]}, ${alpha})`;
+}
+
 function ReadoutShell({
 	theme,
-	effect,
 	children,
 }: {
 	theme: AtmosphereTheme;
 	effect: WeatherEffect;
 	children: ReactNode;
 }) {
-	// Soft shadows only — strong colored glows fringe badly under html-in-canvas.
-	const shadow =
-		effect === "clouds" || effect === "frost" || effect === "droplets"
-			? "0 16px 40px rgba(15, 25, 40, 0.22)"
-			: `0 20px 60px ${theme.glow}`;
+	// Avoid large colored glows — under html-in-canvas they smear into a blurry card bg.
+	const shadow = "0 16px 40px rgba(15, 25, 40, 0.28)";
 
 	return (
 		<div
 			className="relative max-w-[39.6rem] px-6 py-6 sm:px-8 sm:py-7"
 			style={{
-				background: theme.surface,
+				background: opaqueSurface(theme.surface, 1),
 				border: `1px solid ${theme.surfaceBorder}`,
 				borderRadius: 31,
 				boxShadow: shadow,
@@ -90,13 +95,12 @@ export function WeatherPanel({
 			aria-busy={loading || undefined}>
 			{/* Island nav carries the mark on small screens — keep hero brand for lg+. */}
 			<p
-				className="animate-rise-in hidden font-[family-name:var(--font-display)] text-[2.0625rem] leading-none tracking-tight sm:text-[2.475rem] lg:block lg:text-[3.3rem]"
-				style={{ textShadow: `0 0 60px ${theme.glow}` }}>
-				betterWeather
+				className="animate-rise-in hidden font-[family-name:var(--font-display)] text-[2.0625rem] font-bold leading-none tracking-tight sm:text-[2.475rem] lg:block lg:text-[3.3rem]">
+				Better Weather
 			</p>
 
 			<div className="animate-rise-in-delay flex flex-col gap-1.5">
-				<h1 className="max-w-xl font-[family-name:var(--font-display)] text-[1.2375rem] leading-tight tracking-tight sm:text-[1.375rem] lg:text-[1.65rem]">
+				<h1 className="max-w-xl font-[family-name:var(--font-display)] text-[1.2375rem] font-semibold leading-tight tracking-tight sm:text-[1.375rem] lg:text-[1.65rem]">
 					{weather.label} in {weather.city}
 				</h1>
 				<p
@@ -117,7 +121,7 @@ export function WeatherPanel({
 					style={{ outlineColor: theme.accent }}>
 					<span
 						key={`${unit}-${effect}`}
-						className="font-[family-name:var(--font-display)] text-[3.3rem] leading-none tabular-nums sm:text-[3.96rem]"
+						className="font-[family-name:var(--font-display)] text-[3.3rem] font-bold leading-none tabular-nums sm:text-[3.96rem]"
 						style={{ color: theme.accent }}>
 						{displayTemp}
 					</span>

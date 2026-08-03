@@ -21,8 +21,8 @@ export function IslandNav({ leading, glow }: IslandNavProps) {
 						? `0 12px 40px ${glow}`
 						: "0 12px 40px rgba(0,0,0,0.35)",
 				}}>
-				<span className="truncate px-2 font-[family-name:var(--font-display)] text-sm font-semibold tracking-tight text-white sm:text-base">
-					betterWeather
+				<span className="truncate px-2 font-[family-name:var(--font-display)] text-sm font-bold tracking-tight text-white sm:text-base">
+					Better Weather
 				</span>
 				<span className="mx-0.5 h-4 w-px shrink-0 bg-white/15" aria-hidden />
 				<SocialLinks leading={leading} variant="inline" />

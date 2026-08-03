@@ -17,6 +17,11 @@ type EffectPickerProps = {
 	onSelect: (effect: WeatherEffect | null) => void;
 	/** When false, keep the island hidden (avoids layout jump). */
 	visible?: boolean;
+	/**
+	 * `inline` — scrolls with mobile content.
+	 * `rail` — fixed left dock on desktop.
+	 */
+	layout?: "inline" | "rail";
 };
 
 export function EffectPicker({
@@ -25,6 +30,7 @@ export function EffectPicker({
 	theme,
 	onSelect,
 	visible = true,
+	layout = "rail",
 }: EffectPickerProps) {
 	const selected = override ?? active;
 	const htmlInCanvas = useSyncExternalStore(
@@ -33,27 +39,46 @@ export function EffectPicker({
 		() => false,
 	);
 
+	const shell =
+		layout === "inline"
+			? "relative z-10 w-full rounded-2xl px-3 py-2.5"
+			: "fixed z-50 left-[max(0.75rem,env(safe-area-inset-left))] top-[max(5.75rem,calc(50%-10.75rem))] w-auto min-w-[11.75rem] max-w-[13rem] rounded-2xl px-3 py-3 backdrop-blur-xl";
+
 	return (
 		<div
-			className={`fixed z-50 border shadow-2xl backdrop-blur-xl transition-opacity duration-500 bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 w-[min(960px,calc(100%-1.5rem))] -translate-x-1/2 rounded-2xl px-3 py-3 sm:px-4 lg:bottom-auto lg:left-[max(0.75rem,env(safe-area-inset-left))] lg:top-1/2 lg:w-auto lg:max-w-[13.5rem] lg:translate-x-0 lg:-translate-y-1/2 ${
+			className={`${shell} border shadow-2xl transition-opacity duration-500 ${
 				visible
 					? "pointer-events-auto opacity-100"
 					: "pointer-events-none opacity-0"
 			}`}
 			style={{
-				background: "rgba(8, 12, 18, 0.82)",
+				/* Solid fill when inline — backdrop-blur inside html-in-canvas paints a huge blur band. */
+				background:
+					layout === "inline"
+						? "rgba(8, 12, 18, 0.94)"
+						: "rgba(8, 12, 18, 0.82)",
 				borderColor: "rgba(255,255,255,0.14)",
 				color: "#f4f7fb",
 				boxShadow: `0 16px 50px ${theme.glow}`,
 			}}
 			aria-hidden={!visible}>
-			<div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-1 lg:flex-col lg:items-stretch lg:gap-2">
-				<div className="flex flex-wrap items-center gap-x-3 gap-y-1 lg:flex-col lg:items-start lg:gap-1.5">
+			<div
+				className={
+					layout === "inline"
+						? "mb-2 flex items-center justify-between gap-2 px-0.5"
+						: "mb-2 flex flex-col items-stretch gap-2 px-1"
+				}>
+				<div
+					className={
+						layout === "inline"
+							? "flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1"
+							: "flex flex-col items-start gap-1.5"
+					}>
 					<p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
 						Effects
 					</p>
 					<p
-						className="inline-flex items-center gap-1.5 text-[11px] font-medium"
+						className="inline-flex items-center gap-1.5 text-[11px] font-medium leading-snug"
 						title={
 							htmlInCanvas
 								? "html-in-canvas is available — full live DOM refraction"
@@ -69,28 +94,22 @@ export function EffectPicker({
 							}}
 							aria-hidden
 						/>
-						<span
-							className="lg:leading-snug"
-							style={{ color: htmlInCanvas ? "#b8f0c8" : "#ffd2a8" }}>
-							<span className="lg:hidden">
-								html-in-canvas {htmlInCanvas ? "available" : "not available"}
-							</span>
-							<span className="hidden lg:inline">
-								{htmlInCanvas ? "canvas ok" : "fallback"}
-							</span>
+						<span style={{ color: htmlInCanvas ? "#b8f0c8" : "#ffd2a8" }}>
+							html-in-canvas{" "}
+							{htmlInCanvas ? "available" : "not available"}
 						</span>
 					</p>
 				</div>
 				<button
 					type="button"
 					onClick={() => onSelect(null)}
-					className="text-left text-xs font-medium text-white/80 underline-offset-2 transition hover:text-white hover:underline disabled:no-underline disabled:opacity-40"
+					className="shrink-0 text-left text-xs font-medium text-white/80 underline-offset-2 transition hover:text-white hover:underline disabled:no-underline disabled:opacity-40"
 					disabled={override === null || !visible}>
-					Use live weather
+					Live weather
 				</button>
 			</div>
-			{!htmlInCanvas ? (
-				<p className="mb-2 px-1 text-[11px] leading-snug text-white/55 lg:hidden">
+			{!htmlInCanvas && layout === "rail" ? (
+				<p className="mb-2 px-1 text-[11px] leading-snug text-white/55">
 					Full glass refraction needs Chrome with{" "}
 					<span className="text-white/80">
 						chrome://flags/#canvas-draw-element
@@ -98,7 +117,12 @@ export function EffectPicker({
 					enabled, then restart. Fallback capture is active until then.
 				</p>
 			) : null}
-			<div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible lg:mx-0 lg:flex-col lg:flex-nowrap lg:gap-1.5 lg:overflow-visible lg:px-0 lg:pb-0">
+			<div
+				className={
+					layout === "inline"
+						? "flex flex-wrap gap-2"
+						: "flex flex-col gap-1.5"
+				}>
 				{WEATHER_EFFECTS.map((effect) => {
 					const isOn = selected === effect.id;
 					const isLive = override === null && active === effect.id;
@@ -108,7 +132,11 @@ export function EffectPicker({
 							type="button"
 							onClick={() => onSelect(effect.id)}
 							disabled={!visible}
-							className="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition lg:w-full lg:rounded-xl lg:px-3 lg:py-2 lg:text-left"
+							className={
+								layout === "inline"
+									? "rounded-full px-3 py-1.5 text-sm font-medium transition"
+									: "flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium transition"
+							}
 							style={{
 								background: isOn
 									? "rgba(255,255,255,0.22)"
@@ -118,9 +146,15 @@ export function EffectPicker({
 									? `1px solid ${theme.panelAccent}`
 									: "1px solid transparent",
 							}}>
-							{effect.label}
+							<span>{effect.label}</span>
 							{isLive ? (
 								<span className="ml-1 text-[10px] uppercase tracking-wider text-white/60">
+									live
+								</span>
+							) : layout === "rail" ? (
+								<span
+									className="ml-1 text-[10px] uppercase tracking-wider text-transparent"
+									aria-hidden>
 									live
 								</span>
 							) : null}

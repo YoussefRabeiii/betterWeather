@@ -204,6 +204,7 @@ export function WeatherApp() {
 		(cityId: string) => {
 			const city = MAJOR_CITIES.find((c) => c.id === cityId);
 			if (!city) return;
+			setEffectOverride(null);
 			loadLocation({
 				lat: city.lat,
 				lon: city.lon,
@@ -242,6 +243,14 @@ export function WeatherApp() {
 	const flameOverflow =
 		activeEffect === "flame-wrap" ? "overflow-visible" : "overflow-hidden";
 
+	const effectPickerProps = {
+		active: weather?.effect ?? ("blaze" as WeatherEffect),
+		override: effectOverride,
+		theme,
+		onSelect: setEffectOverride,
+		visible: Boolean(weather),
+	};
+
 	return (
 		<div
 			className="relative h-dvh max-h-dvh w-full transition-[background] duration-700"
@@ -251,10 +260,16 @@ export function WeatherApp() {
 				effectOverride={effectOverride}
 				backdrop={theme.gradient}
 				className="absolute inset-0 h-full w-full">
-				<main className="relative z-10 flex min-h-full w-full flex-col px-0 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-[calc(4.25rem+env(safe-area-inset-top))] lg:justify-center lg:pb-6 lg:pt-[calc(4.5rem+env(safe-area-inset-top))]">
-					<section className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 content-start items-start gap-6 px-4 sm:gap-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.9fr)] lg:content-center lg:items-center lg:gap-8 lg:px-12 lg:pl-[calc(11rem+env(safe-area-inset-left))]">
+				{/* Mobile: scrollable stack under the island nav. Desktop: centered two-col. */}
+				<main
+					className={`relative z-10 flex w-full flex-col px-0 lg:min-h-full lg:justify-center lg:pb-6 lg:pt-[calc(4.5rem+env(safe-area-inset-top))] ${
+						activeEffect === "flame-wrap"
+							? "pt-[calc(6.75rem+env(safe-area-inset-top))]"
+							: "pt-[calc(5.5rem+env(safe-area-inset-top))]"
+					} pb-[max(1.25rem,env(safe-area-inset-bottom))]`}>
+					<section className="mx-auto grid w-full max-w-7xl grid-cols-1 content-start items-start gap-5 px-4 sm:gap-6 sm:px-8 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.9fr)] lg:content-center lg:items-center lg:gap-8 lg:px-12 lg:pl-[calc(13.5rem+env(safe-area-inset-left))]">
 						<div
-							className={`flex min-w-0 flex-col justify-center ${flameOverflow} lg:-translate-x-8 lg:overflow-visible`}>
+							className={`flex min-w-0 flex-col justify-center ${flameOverflow} lg:-translate-x-[calc(2rem+40px)] lg:overflow-visible`}>
 							{weather ? (
 								<WeatherPanel
 									weather={weather}
@@ -266,12 +281,18 @@ export function WeatherApp() {
 								<div
 									className="flex max-w-xl flex-col gap-3 rounded-[28px] px-5 py-6 sm:px-7"
 									style={{
-										background: theme.surface,
+										background: theme.surface.replace(
+											/rgba?\(([^)]+)\)/,
+											(_, inner: string) => {
+												const p = inner.split(",").map((s) => s.trim());
+												return `rgba(${p[0]}, ${p[1]}, ${p[2]}, 0.96)`;
+											},
+										),
 										border: `1px solid ${theme.surfaceBorder}`,
 										color: theme.text,
 									}}>
-									<p className="hidden font-[family-name:var(--font-display)] text-4xl tracking-tight sm:text-5xl lg:block">
-										betterWeather
+									<p className="hidden font-[family-name:var(--font-display)] text-4xl font-bold tracking-tight sm:text-5xl lg:block">
+										Better Weather
 									</p>
 									<p className="font-medium" style={{ color: theme.muted }}>
 										Finding your sky…
@@ -298,7 +319,7 @@ export function WeatherApp() {
 								pinColors={pinColors}
 								markerColor={markerColor}
 								glowColor={glowColor}
-								className="aspect-square w-[min(100%,42dvh,360px)] lg:w-[min(100%,52dvh,500px)]"
+								className="aspect-square w-[min(100%,48dvh,380px)] lg:w-[min(100%,52dvh,500px)]"
 							/>
 
 							<div className="mx-auto flex w-full max-w-md flex-wrap justify-center gap-x-1.5 gap-y-2.5 pb-1 lg:w-[min(100%,42dvh,400px)]">
@@ -330,6 +351,11 @@ export function WeatherApp() {
 									);
 								})}
 							</div>
+
+							{/* Mobile: effects sit under the globe and scroll with the page. */}
+							<div className="w-full max-w-md lg:hidden">
+								<EffectPicker {...effectPickerProps} layout="inline" />
+							</div>
 						</div>
 					</section>
 
@@ -347,13 +373,10 @@ export function WeatherApp() {
 				}
 			/>
 
-			<EffectPicker
-				active={weather?.effect ?? "blaze"}
-				override={effectOverride}
-				theme={theme}
-				onSelect={setEffectOverride}
-				visible={Boolean(weather)}
-			/>
+			{/* Desktop: left effects rail */}
+			<div className="hidden lg:block">
+				<EffectPicker {...effectPickerProps} layout="rail" />
+			</div>
 		</div>
 	);
 }

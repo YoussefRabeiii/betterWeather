@@ -64,6 +64,11 @@ export interface FrostOptions {
 	shimmer?: number;
 	/** Resolution multiplier for the blur passes (0.25-1). */
 	quality?: number;
+	/**
+	 * Softly clears frost near the bottom of the viewport (0-1 of height)
+	 * so footer chrome stays readable. 0 disables.
+	 */
+	footerClear?: number;
 }
 
 export interface FrostElements {
@@ -114,6 +119,7 @@ const DEFAULTS: Required<FrostOptions> = {
 	opacity: 0.6,
 	shimmer: 0,
 	quality: 1,
+	footerClear: 0.2,
 };
 
 const BLUR_KERNEL = 10;
@@ -328,6 +334,7 @@ uniform float uShimmer;
 uniform float uTime;
 uniform float uOpacity;
 uniform float uHasContent;
+uniform float uFooterClear;
 float contrastFn (float x, float strength) {
   return clamp((x - 0.5) * strength + 0.5, 0.0, 1.0);
 }
@@ -358,13 +365,21 @@ void main () {
 
   float meltRaw = texture(uPointer, vUv).r;
 
+  // Soft clear band at the bottom for footer readability (vUv.y = 0 is bottom).
+  float footerBand = max(uFooterClear, 0.0001);
+  float footerKeep = smoothstep(0.0, footerBand, vUv.y);
+  footerKeep = mix(0.12, 1.0, footerKeep);
+
   vec2 edgeDist = min(vUv, 1.0 - vUv);
+  // Don't force heavy freeze on the bottom edge (footer lives there).
+  float edgeY = mix(1.0 - vUv.y, edgeDist.y, footerKeep);
+  float edgeMetric = min(edgeDist.x, edgeY);
   float edgeBoost =
-    (1.0 - smoothstep(0.0, 0.4, min(edgeDist.x, edgeDist.y)))
+    (1.0 - smoothstep(0.0, 0.4, edgeMetric))
     * (1.0 - uMeltEdges * smoothstep(0.0, 0.5, meltRaw));
   float strength = uStrength * (0.62 + 0.65 * edgeBoost);
 
-  float ed = min(edgeDist.x, edgeDist.y)
+  float ed = edgeMetric
     + (0.5 - warpN) * 0.34 + (0.5 - noise.g) * 0.16;
   float local = clamp((uIntro * 3.0 - ed * 2.0 - 0.3) / 1.1, 0.0, 1.0);
   strength *= local;
@@ -392,7 +407,7 @@ void main () {
   float cover = smoothstep(0.03, 0.35, body);
   float ice = clamp(
     contrastFn(micro * cover * frozen + body, uCrispness), 0.0, 1.0);
-  float frostMask = ice * frozen;
+  float frostMask = ice * frozen * footerKeep;
 
   vec2 wobble = vec2(noise.a - 0.5, noise.g - 0.5) * wet * 0.018;
 
@@ -408,7 +423,7 @@ void main () {
     blur = base;
   }
   float blurMix = clamp(
-    frostMask + uHaze * max(frozen, wet * 0.5), 0.0, 1.0);
+    frostMask + uHaze * max(frozen, wet * 0.5) * footerKeep, 0.0, 1.0);
   vec4 color = mix(base, blur, blurMix);
 
   vec3 hsv = rgb2hsv(color.rgb);
@@ -425,7 +440,7 @@ void main () {
     glint * uHighlightStrength * step(0.001, uHighlight));
 
   color.rgb = mix(color.rgb, frostColor, frostMask);
-  color.rgb += wet * glint * 0.25;
+  color.rgb += wet * glint * 0.25 * footerKeep;
 
   float op = clamp(uOpacity, 0.0, 1.0);
   color.rgb = mix(base.rgb, color.rgb, op);
@@ -1038,6 +1053,10 @@ export function createFrost(
 			Math.min(Math.max(config.opacity, 0), 1),
 		);
 		gl!.uniform1f(frostProgram.uniforms.uHasContent, hasContentTexture ? 1 : 0);
+		gl!.uniform1f(
+			frostProgram.uniforms.uFooterClear,
+			Math.min(Math.max(config.footerClear, 0), 0.5),
+		);
 		blit(frostTarget);
 	}
 
