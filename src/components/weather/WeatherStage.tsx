@@ -7,6 +7,7 @@ import { Cloth } from "@/components/canvasui/Cloth";
 import { Clouds } from "@/components/canvasui/Clouds";
 import { Droplets, supportsHtmlInCanvas } from "@/components/canvasui/Droplets";
 import { Frost } from "@/components/canvasui/Frost";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { WeatherEffect, WeatherPayload } from "@/lib/weather";
 
 type WeatherStageProps = {
@@ -77,7 +78,7 @@ function Scene({
 	return (
 		<div className="relative h-full w-full overflow-hidden" style={style}>
 			<div className="sky-noise absolute inset-0" aria-hidden />
-			<div className="relative z-10 h-full w-full overflow-visible">
+			<div className="relative z-10 h-full min-h-0 w-full overflow-hidden">
 				{children}
 			</div>
 		</div>
@@ -147,21 +148,21 @@ const CLOUDS_OPTIONS = {
 	quality: 0.85,
 };
 
-function effectOptions(weather: WeatherPayload) {
+function effectOptions(weather: WeatherPayload, reducedMotion: boolean) {
 	const precipBoost = Math.min(1, weather.precip / 5);
 	const windBoost = Math.min(1, weather.wind / 80);
 
 	const blazeHeat = {
 		height: 0.97,
-		distortion: 0.6,
+		distortion: reducedMotion ? 0.35 : 0.6,
 		distortionScale: 0.5,
-		speed: 1,
-		sparks: 0.5,
-		sparkDensity: 1.5,
+		speed: reducedMotion ? 0 : 1,
+		sparks: reducedMotion ? 0 : 0.5,
+		sparkDensity: reducedMotion ? 0 : 1.5,
 		sparkSize: 1,
-		layers: 4,
-		smoke: 0.5,
-		glow: 1.5,
+		layers: reducedMotion ? 2 : 4,
+		smoke: reducedMotion ? 0.25 : 0.5,
+		glow: reducedMotion ? 0.9 : 1.5,
 		sparkColor: [1, 0.4, 0.05] as [number, number, number],
 		smokeColor: [1, 0.43, 0.1] as [number, number, number],
 	};
@@ -169,14 +170,20 @@ function effectOptions(weather: WeatherPayload) {
 	return {
 		blaze: {
 			...blazeHeat,
-			sparks: weather.isDay ? 0.55 : 0.3,
-			glow: weather.isDay ? 1.5 : 0.9,
+			sparks: reducedMotion ? 0 : weather.isDay ? 0.55 : 0.3,
+			glow: weather.isDay
+				? reducedMotion
+					? 1
+					: 1.5
+				: reducedMotion
+					? 0.7
+					: 0.9,
 		},
 		blazeCloth: {
 			pin: "top" as const,
-			wind: 0.35,
-			speed: 0.85,
-			amplitude: 12,
+			wind: reducedMotion ? 0 : 0.35,
+			speed: reducedMotion ? 0 : 0.85,
+			amplitude: reducedMotion ? 0 : 12,
 			drape: 16,
 			brush: 0.35,
 			cornerRadius: 0,
@@ -187,17 +194,17 @@ function effectOptions(weather: WeatherPayload) {
 		"flame-wrap": {
 			...blazeHeat,
 			height: 0.7,
-			distortion: 0.4,
-			sparks: 0.3,
-			smoke: 0.35,
-			glow: 1.1,
-			layers: 3,
+			distortion: reducedMotion ? 0.25 : 0.4,
+			sparks: reducedMotion ? 0 : 0.3,
+			smoke: reducedMotion ? 0.2 : 0.35,
+			glow: reducedMotion ? 0.75 : 1.1,
+			layers: reducedMotion ? 2 : 3,
 		},
 		flameCloth: {
 			pin: "top" as const,
-			wind: 0.28,
-			speed: 0.7,
-			amplitude: 10,
+			wind: reducedMotion ? 0 : 0.28,
+			speed: reducedMotion ? 0 : 0.7,
+			amplitude: reducedMotion ? 0 : 10,
 			drape: 14,
 			brush: 0.25,
 			cornerRadius: 0,
@@ -205,22 +212,26 @@ function effectOptions(weather: WeatherPayload) {
 			sheen: 0.2,
 			damping: 0.1,
 		},
-		clouds: CLOUDS_OPTIONS,
+		clouds: {
+			...CLOUDS_OPTIONS,
+			speed: reducedMotion ? 0 : CLOUDS_OPTIONS.speed,
+			wind: reducedMotion ? 0 : CLOUDS_OPTIONS.wind,
+		},
 		droplets: {
 			intensity: 0.75 + precipBoost * 0.35,
-			speed: 1,
+			speed: reducedMotion ? 0 : 1,
 			scale: 0.38,
 			dropWidth: 1.15,
 			dropLength: 1.25,
 			refraction: 0.42,
 			blur: 0.2,
 			vignette: 0.12,
-			fallSpeed: 1,
-			wiggle: 1.15,
-			staticDrops: 0.45,
+			fallSpeed: reducedMotion ? 0 : 1,
+			wiggle: reducedMotion ? 0 : 1.15,
+			staticDrops: reducedMotion ? 0.85 : 0.45,
 			tint: [1, 1, 1] as [number, number, number],
 			tintStrength: 0,
-			interactive: true,
+			interactive: !reducedMotion,
 			interactionRadius: 0.32,
 			interactionStrength: 0.65,
 			interactionDistortion: 3.2,
@@ -248,19 +259,20 @@ function effectOptions(weather: WeatherPayload) {
 			meltStrength: 0.8,
 			refreeze: 10,
 			edgeFade: 0.12,
-			meltEdges: true,
-			introDuration: 2.5,
+			meltEdges: !reducedMotion,
+			introDuration: reducedMotion ? 0 : 2.5,
 			opacity: 0.72,
-			shimmer: 0.25,
+			shimmer: reducedMotion ? 0 : 0.25,
 			quality: 1,
 		},
 		cloth: {
 			pin: "top" as const,
-			wind: 0.75 + windBoost * 0.25,
-			speed: 1.15 + windBoost,
-			amplitude: 26 + windBoost * 12,
+			wind: reducedMotion ? 0 : 0.75 + windBoost * 0.25,
+			speed: reducedMotion ? 0 : 1.15 + windBoost,
+			amplitude: reducedMotion ? 0 : 26 + windBoost * 12,
 			drape: 32,
-			brush: 0.75,
+			brush: reducedMotion ? 0 : 1.05,
+			brushSize: 175,
 			cornerRadius: 0,
 			light: 0.65,
 			sheen: 0.4,
@@ -271,10 +283,10 @@ function effectOptions(weather: WeatherPayload) {
 		clothBlaze: {
 			...blazeHeat,
 			height: 0.85,
-			distortion: 0.55,
-			sparks: 0.4,
-			smoke: 0.4,
-			glow: 1.35,
+			distortion: reducedMotion ? 0.3 : 0.55,
+			sparks: reducedMotion ? 0 : 0.4,
+			smoke: reducedMotion ? 0.2 : 0.4,
+			glow: reducedMotion ? 0.85 : 1.35,
 		},
 	};
 }
@@ -287,6 +299,7 @@ export function WeatherStage({
 	className,
 }: WeatherStageProps) {
 	const layout = stageStyle(className);
+	const reducedMotion = usePrefersReducedMotion();
 	const native = useSyncExternalStore(
 		emptySubscribe,
 		supportsHtmlInCanvas,
@@ -302,7 +315,7 @@ export function WeatherStage({
 	}
 
 	const effect = effectOverride ?? weather.effect;
-	const opts = effectOptions(weather);
+	const opts = effectOptions(weather, reducedMotion);
 
 	const scene = (extra?: { photo?: string; overlay?: string }) => (
 		<Scene backdrop={backdrop} photo={extra?.photo} overlay={extra?.overlay}>

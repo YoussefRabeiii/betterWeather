@@ -878,7 +878,7 @@ export function Clouds({
 							position: "relative",
 							width: "100%",
 							height: "100%",
-							overflow: "auto",
+							overflow: "hidden",
 						}}>
 						{children}
 					</div>
@@ -891,7 +891,7 @@ export function Clouds({
 						position: "relative",
 						width: "100%",
 						height: "100%",
-						overflow: "auto",
+						overflow: "hidden",
 					}}>
 					{children}
 				</div>

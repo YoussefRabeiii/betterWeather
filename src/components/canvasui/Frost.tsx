@@ -1,119 +1,119 @@
 "use client";
 
 import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+	useSyncExternalStore,
+	type ReactNode,
 } from "react";
 
 export interface FrostOptions {
-  /** Base frozen coverage added on top of the frost pattern (0-1). */
-  frost?: number;
-  /** Multiplier on the frost noise pattern. Higher freezes more of the pane. */
-  strength?: number;
-  /** Contrast of the frost noise pattern. */
-  contrast?: number;
-  /** Contrast of the final frost mask. Higher gives crisper frost edges. */
-  crispness?: number;
-  /** How much sparkling highlight grain mixes into the frost (0-1). */
-  highlight?: number;
-  /** How strongly highlights tint toward white (0-1). */
-  highlightStrength?: number;
-  /** Base blur haze mixed over the content, even outside thick frost (0-1). */
-  haze?: number;
-  /** Frost color where the layer is thin, as [r, g, b] in 0-1 range. */
-  tintThin?: [number, number, number];
-  /** Frost color where the layer is thick, as [r, g, b] in 0-1 range. */
-  tintThick?: [number, number, number];
-  /** How much the frost tint colors the frozen areas (0-1). */
-  tintStrength?: number;
-  /** Saturation multiplier applied to the frosted content. */
-  saturation?: number;
-  /** Brightness multiplier applied to the frosted content. */
-  brightness?: number;
-  /** How far the icy surface bends light. 0 disables refraction. */
-  refraction?: number;
-  /** Index of refraction of the ice. Water ice is about 1.31. */
-  ior?: number;
-  /** Strength of the fine surface detail in the refraction. */
-  detail?: number;
-  /** Scale of the icy relief pattern. Higher is larger features. */
-  textureScale?: number;
-  /** Fresnel boost at grazing angles (0-2). */
-  fresnel?: number;
-  /** Radius of the melt spot under the cursor (0-1, fraction of height). */
-  meltRadius?: number;
-  /** Irregularity of the melt edge. 0 is a clean circle. */
-  meltNoise?: number;
-  /** How quickly hovering melts the frost (0-1). */
-  meltStrength?: number;
-  /** How fast melted areas freeze back over. 0 never refreezes. */
-  refreeze?: number;
-  /** Keeps the edges of the pane frozen. 0 lets everything melt. */
-  edgeFade?: number;
-  /** Lets the frozen borders of the pane melt too. */
-  meltEdges?: boolean;
-  /** Seconds for the frost to grow in from the edges on load. 0 disables. */
-  introDuration?: number;
-  /** Overall opacity of the frost layer (0-1). Lower shows more content. */
-  opacity?: number;
-  /** Animated twinkle of the highlight grain (0-1). 0 is static. */
-  shimmer?: number;
-  /** Resolution multiplier for the blur passes (0.25-1). */
-  quality?: number;
+	/** Base frozen coverage added on top of the frost pattern (0-1). */
+	frost?: number;
+	/** Multiplier on the frost noise pattern. Higher freezes more of the pane. */
+	strength?: number;
+	/** Contrast of the frost noise pattern. */
+	contrast?: number;
+	/** Contrast of the final frost mask. Higher gives crisper frost edges. */
+	crispness?: number;
+	/** How much sparkling highlight grain mixes into the frost (0-1). */
+	highlight?: number;
+	/** How strongly highlights tint toward white (0-1). */
+	highlightStrength?: number;
+	/** Base blur haze mixed over the content, even outside thick frost (0-1). */
+	haze?: number;
+	/** Frost color where the layer is thin, as [r, g, b] in 0-1 range. */
+	tintThin?: [number, number, number];
+	/** Frost color where the layer is thick, as [r, g, b] in 0-1 range. */
+	tintThick?: [number, number, number];
+	/** How much the frost tint colors the frozen areas (0-1). */
+	tintStrength?: number;
+	/** Saturation multiplier applied to the frosted content. */
+	saturation?: number;
+	/** Brightness multiplier applied to the frosted content. */
+	brightness?: number;
+	/** How far the icy surface bends light. 0 disables refraction. */
+	refraction?: number;
+	/** Index of refraction of the ice. Water ice is about 1.31. */
+	ior?: number;
+	/** Strength of the fine surface detail in the refraction. */
+	detail?: number;
+	/** Scale of the icy relief pattern. Higher is larger features. */
+	textureScale?: number;
+	/** Fresnel boost at grazing angles (0-2). */
+	fresnel?: number;
+	/** Radius of the melt spot under the cursor (0-1, fraction of height). */
+	meltRadius?: number;
+	/** Irregularity of the melt edge. 0 is a clean circle. */
+	meltNoise?: number;
+	/** How quickly hovering melts the frost (0-1). */
+	meltStrength?: number;
+	/** How fast melted areas freeze back over. 0 never refreezes. */
+	refreeze?: number;
+	/** Keeps the edges of the pane frozen. 0 lets everything melt. */
+	edgeFade?: number;
+	/** Lets the frozen borders of the pane melt too. */
+	meltEdges?: boolean;
+	/** Seconds for the frost to grow in from the edges on load. 0 disables. */
+	introDuration?: number;
+	/** Overall opacity of the frost layer (0-1). Lower shows more content. */
+	opacity?: number;
+	/** Animated twinkle of the highlight grain (0-1). 0 is static. */
+	shimmer?: number;
+	/** Resolution multiplier for the blur passes (0.25-1). */
+	quality?: number;
 }
 
 export interface FrostElements {
-  /** Canvas with layoutsubtree that hosts the HTML content. */
-  source: HTMLCanvasElement;
-  /** The element inside the source canvas that gets captured. */
-  content: HTMLElement;
-  /** Canvas the WebGL effect renders to. */
-  output: HTMLCanvasElement;
+	/** Canvas with layoutsubtree that hosts the HTML content. */
+	source: HTMLCanvasElement;
+	/** The element inside the source canvas that gets captured. */
+	content: HTMLElement;
+	/** Canvas the WebGL effect renders to. */
+	output: HTMLCanvasElement;
 }
 
 export interface FrostInstance {
-  /** Melt a spot at (x, y) in [0,1] space, top-left origin. */
-  melt: (x: number, y: number) => void;
-  /** Update options live. */
-  setOptions: (options: FrostOptions) => void;
-  /** Re-read canvas size. Call when the element is resized. */
-  resize: () => void;
-  /** Stop the loop and release all GPU resources. */
-  destroy: () => void;
+	/** Melt a spot at (x, y) in [0,1] space, top-left origin. */
+	melt: (x: number, y: number) => void;
+	/** Update options live. */
+	setOptions: (options: FrostOptions) => void;
+	/** Re-read canvas size. Call when the element is resized. */
+	resize: () => void;
+	/** Stop the loop and release all GPU resources. */
+	destroy: () => void;
 }
 
 const DEFAULTS: Required<FrostOptions> = {
-  frost: 0.05,
-  strength: 0.7,
-  contrast: 3,
-  crispness: 1,
-  highlight: 0.3,
-  highlightStrength: 0.8,
-  haze: 0.5,
-  tintThin: [0.82, 0.86, 1.05],
-  tintThick: [0.92, 0.96, 1.1],
-  tintStrength: 0.3,
-  saturation: 1.2,
-  brightness: 0.85,
-  refraction: 1,
-  ior: 1.31,
-  detail: 2,
-  textureScale: 2,
-  fresnel: 0.8,
-  meltRadius: 0.25,
-  meltNoise: 0.25,
-  meltStrength: 0.75,
-  refreeze: 2,
-  edgeFade: 0.1,
-  meltEdges: true,
-  introDuration: 2.5,
-  opacity: 0.6,
-  shimmer: 0,
-  quality: 1,
+	frost: 0.05,
+	strength: 0.7,
+	contrast: 3,
+	crispness: 1,
+	highlight: 0.3,
+	highlightStrength: 0.8,
+	haze: 0.5,
+	tintThin: [0.82, 0.86, 1.05],
+	tintThick: [0.92, 0.96, 1.1],
+	tintStrength: 0.3,
+	saturation: 1.2,
+	brightness: 0.85,
+	refraction: 1,
+	ior: 1.31,
+	detail: 2,
+	textureScale: 2,
+	fresnel: 0.8,
+	meltRadius: 0.25,
+	meltNoise: 0.25,
+	meltStrength: 0.75,
+	refreeze: 2,
+	edgeFade: 0.1,
+	meltEdges: true,
+	introDuration: 2.5,
+	opacity: 0.6,
+	shimmer: 0,
+	quality: 1,
 };
 
 const BLUR_KERNEL = 10;
@@ -121,12 +121,12 @@ const HEIGHT_RES = 512;
 const NOISE_RES = 1024;
 
 type PaintableCanvas = HTMLCanvasElement & {
-  onpaint?: (() => void) | null;
-  requestPaint?: () => void;
+	onpaint?: (() => void) | null;
+	requestPaint?: () => void;
 };
 
 type ElementImageContext = CanvasRenderingContext2D & {
-  drawElementImage?: (element: Element, x: number, y: number) => void;
+	drawElementImage?: (element: Element, x: number, y: number) => void;
 };
 
 const VERT = `#version 300 es
@@ -504,851 +504,847 @@ void main () {
 }`;
 
 interface Target {
-  fbo: WebGLFramebuffer;
-  texture: WebGLTexture;
-  width: number;
-  height: number;
+	fbo: WebGLFramebuffer;
+	texture: WebGLTexture;
+	width: number;
+	height: number;
 }
 
 interface DoubleTarget {
-  read: Target;
-  write: Target;
-  swap: () => void;
+	read: Target;
+	write: Target;
+	swap: () => void;
 }
 
 export function supportsHtmlInCanvas(): boolean {
-  if (typeof document === "undefined") return false;
-  const probe = document.createElement("canvas") as PaintableCanvas;
-  const ctx = probe.getContext("2d") as ElementImageContext | null;
-  return Boolean(
-    ctx &&
-    typeof ctx.drawElementImage === "function" &&
-    typeof probe.requestPaint === "function",
-  );
+	if (typeof document === "undefined") return false;
+	const probe = document.createElement("canvas") as PaintableCanvas;
+	const ctx = probe.getContext("2d") as ElementImageContext | null;
+	return Boolean(
+		ctx &&
+		typeof ctx.drawElementImage === "function" &&
+		typeof probe.requestPaint === "function",
+	);
 }
 
 function buildBlurWeights(kernel: number): string {
-  const weights: number[] = [];
-  let total = 0;
-  for (let i = 0; i < kernel; i++) {
-    const w = Math.exp((-0.5 * (i * i)) / (kernel * kernel * 0.25));
-    weights.push(w);
-    total += i === 0 ? w : w * 2;
-  }
-  const normalized = weights.map((w) => (w / total).toFixed(6));
-  return [
-    `#define KERNEL_SIZE ${kernel}`,
-    `#define WEIGHT_CENTER ${normalized[0]}`,
-    `const float WEIGHTS[KERNEL_SIZE - 1] = float[KERNEL_SIZE - 1](${normalized
-      .slice(1)
-      .join(", ")});`,
-  ].join("\n");
+	const weights: number[] = [];
+	let total = 0;
+	for (let i = 0; i < kernel; i++) {
+		const w = Math.exp((-0.5 * (i * i)) / (kernel * kernel * 0.25));
+		weights.push(w);
+		total += i === 0 ? w : w * 2;
+	}
+	const normalized = weights.map((w) => (w / total).toFixed(6));
+	return [
+		`#define KERNEL_SIZE ${kernel}`,
+		`#define WEIGHT_CENTER ${normalized[0]}`,
+		`const float WEIGHTS[KERNEL_SIZE - 1] = float[KERNEL_SIZE - 1](${normalized
+			.slice(1)
+			.join(", ")});`,
+	].join("\n");
 }
 
 export function createFrost(
-  elements: FrostElements,
-  options: FrostOptions = {},
+	elements: FrostElements,
+	options: FrostOptions = {},
 ): FrostInstance | null {
-  const config = { ...DEFAULTS, ...options };
-  const { source, content, output } = elements;
+	const config = { ...DEFAULTS, ...options };
+	const { source, content, output } = elements;
 
-  const gl = output.getContext("webgl2", {
-    alpha: true,
-    depth: false,
-    stencil: false,
-    antialias: false,
-    premultipliedAlpha: true,
-  });
-  if (!gl || gl.isContextLost()) return null;
+	const gl = output.getContext("webgl2", {
+		alpha: true,
+		depth: false,
+		stencil: false,
+		antialias: false,
+		premultipliedAlpha: true,
+	});
+	if (!gl || gl.isContextLost()) return null;
 
-  const sourceCtx = source.getContext("2d") as ElementImageContext | null;
-  const paintable = source as PaintableCanvas;
-  const htmlInCanvas = Boolean(
-    sourceCtx &&
-    typeof sourceCtx.drawElementImage === "function" &&
-    typeof paintable.requestPaint === "function",
-  );
+	const sourceCtx = source.getContext("2d") as ElementImageContext | null;
+	const paintable = source as PaintableCanvas;
+	const htmlInCanvas = Boolean(
+		sourceCtx &&
+		typeof sourceCtx.drawElementImage === "function" &&
+		typeof paintable.requestPaint === "function",
+	);
 
-  let contentDirty = false;
-  /** Wait for a real content texture so we don't show the icy solid fallback. */
-  let contentReady = false;
-  let hasContentTexture = false;
-  let fallbackCapturing = false;
-  let fallbackTimer = 0;
-  let destroyed = false;
-  let wake = () => {};
+	let contentDirty = false;
+	/** Wait for a real content texture so we don't show the icy solid fallback. */
+	let contentReady = false;
+	let hasContentTexture = false;
+	let fallbackCapturing = false;
+	let fallbackTimer = 0;
+	let destroyed = false;
+	let wake = () => {};
 
-  function captureContent() {
-    try {
-      sourceCtx!.reset();
-      sourceCtx!.drawElementImage!(content, 0, 0);
-      contentDirty = true;
-      wake();
-    } catch {}
-  }
+	function captureContent() {
+		try {
+			sourceCtx!.reset();
+			sourceCtx!.drawElementImage!(content, 0, 0);
+			contentDirty = true;
+			wake();
+		} catch {}
+	}
 
-  if (htmlInCanvas) {
-    paintable.onpaint = captureContent;
-  }
+	if (htmlInCanvas) {
+		paintable.onpaint = captureContent;
+	}
 
-  const halfFloat = Boolean(gl.getExtension("EXT_color_buffer_float"));
+	const halfFloat = Boolean(gl.getExtension("EXT_color_buffer_float"));
 
-  const shaders: WebGLShader[] = [];
-  const programs: WebGLProgram[] = [];
+	const shaders: WebGLShader[] = [];
+	const programs: WebGLProgram[] = [];
 
-  function compile(type: number, text: string): WebGLShader {
-    const shader = gl!.createShader(type)!;
-    gl!.shaderSource(shader, text);
-    gl!.compileShader(shader);
-    if (!gl!.getShaderParameter(shader, gl!.COMPILE_STATUS)) {
-      console.error("Frost shader error:", gl!.getShaderInfoLog(shader));
-    }
-    shaders.push(shader);
-    return shader;
-  }
+	function compile(type: number, text: string): WebGLShader {
+		const shader = gl!.createShader(type)!;
+		gl!.shaderSource(shader, text);
+		gl!.compileShader(shader);
+		if (!gl!.getShaderParameter(shader, gl!.COMPILE_STATUS)) {
+			console.error("Frost shader error:", gl!.getShaderInfoLog(shader));
+		}
+		shaders.push(shader);
+		return shader;
+	}
 
-  const vertexShader = compile(gl.VERTEX_SHADER, VERT);
+	const vertexShader = compile(gl.VERTEX_SHADER, VERT);
 
-  interface Program {
-    program: WebGLProgram;
-    uniforms: Record<string, WebGLUniformLocation>;
-  }
+	interface Program {
+		program: WebGLProgram;
+		uniforms: Record<string, WebGLUniformLocation>;
+	}
 
-  function createProgram(fragSource: string): Program {
-    const program = gl!.createProgram()!;
-    gl!.attachShader(program, vertexShader);
-    gl!.attachShader(program, compile(gl!.FRAGMENT_SHADER, fragSource));
-    gl!.linkProgram(program);
-    programs.push(program);
-    const uniforms: Record<string, WebGLUniformLocation> = {};
-    const count = gl!.getProgramParameter(program, gl!.ACTIVE_UNIFORMS);
-    for (let i = 0; i < count; i++) {
-      const info = gl!.getActiveUniform(program, i)!;
-      uniforms[info.name] = gl!.getUniformLocation(program, info.name)!;
-    }
-    return { program, uniforms };
-  }
+	function createProgram(fragSource: string): Program {
+		const program = gl!.createProgram()!;
+		gl!.attachShader(program, vertexShader);
+		gl!.attachShader(program, compile(gl!.FRAGMENT_SHADER, fragSource));
+		gl!.linkProgram(program);
+		programs.push(program);
+		const uniforms: Record<string, WebGLUniformLocation> = {};
+		const count = gl!.getProgramParameter(program, gl!.ACTIVE_UNIFORMS);
+		for (let i = 0; i < count; i++) {
+			const info = gl!.getActiveUniform(program, i)!;
+			uniforms[info.name] = gl!.getUniformLocation(program, info.name)!;
+		}
+		return { program, uniforms };
+	}
 
-  const noiseProgram = createProgram(FRAG_NOISE);
-  const heightProgram = createProgram(FRAG_HEIGHT);
-  const blurProgram = createProgram(
-    FRAG_BLUR.replace("WEIGHTS_PLACEHOLDER", buildBlurWeights(BLUR_KERNEL)),
-  );
-  const pointerProgram = createProgram(FRAG_POINTER);
-  const frostProgram = createProgram(FRAG_FROST);
-  const outputProgram = createProgram(FRAG_OUTPUT);
+	const noiseProgram = createProgram(FRAG_NOISE);
+	const heightProgram = createProgram(FRAG_HEIGHT);
+	const blurProgram = createProgram(
+		FRAG_BLUR.replace("WEIGHTS_PLACEHOLDER", buildBlurWeights(BLUR_KERNEL)),
+	);
+	const pointerProgram = createProgram(FRAG_POINTER);
+	const frostProgram = createProgram(FRAG_FROST);
+	const outputProgram = createProgram(FRAG_OUTPUT);
 
-  const quad = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, quad);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
-    gl.STATIC_DRAW,
-  );
-  gl.enableVertexAttribArray(0);
-  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+	const quad = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+	gl.bufferData(
+		gl.ARRAY_BUFFER,
+		new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+		gl.STATIC_DRAW,
+	);
+	gl.enableVertexAttribArray(0);
+	gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-  function createTarget(
-    width: number,
-    height: number,
-    useHalfFloat: boolean,
-    wrap: number,
-  ): Target {
-    const texture = gl!.createTexture()!;
-    gl!.bindTexture(gl!.TEXTURE_2D, texture);
-    gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MIN_FILTER, gl!.LINEAR);
-    gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MAG_FILTER, gl!.LINEAR);
-    gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_S, wrap);
-    gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_T, wrap);
-    gl!.texImage2D(
-      gl!.TEXTURE_2D,
-      0,
-      useHalfFloat ? gl!.RGBA16F : gl!.RGBA8,
-      width,
-      height,
-      0,
-      gl!.RGBA,
-      useHalfFloat ? gl!.HALF_FLOAT : gl!.UNSIGNED_BYTE,
-      null,
-    );
-    const fbo = gl!.createFramebuffer()!;
-    gl!.bindFramebuffer(gl!.FRAMEBUFFER, fbo);
-    gl!.framebufferTexture2D(
-      gl!.FRAMEBUFFER,
-      gl!.COLOR_ATTACHMENT0,
-      gl!.TEXTURE_2D,
-      texture,
-      0,
-    );
-    gl!.viewport(0, 0, width, height);
-    gl!.clearColor(0, 0, 0, 0);
-    gl!.clear(gl!.COLOR_BUFFER_BIT);
-    return { fbo, texture, width, height };
-  }
+	function createTarget(
+		width: number,
+		height: number,
+		useHalfFloat: boolean,
+		wrap: number,
+	): Target {
+		const texture = gl!.createTexture()!;
+		gl!.bindTexture(gl!.TEXTURE_2D, texture);
+		gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MIN_FILTER, gl!.LINEAR);
+		gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MAG_FILTER, gl!.LINEAR);
+		gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_S, wrap);
+		gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_T, wrap);
+		gl!.texImage2D(
+			gl!.TEXTURE_2D,
+			0,
+			useHalfFloat ? gl!.RGBA16F : gl!.RGBA8,
+			width,
+			height,
+			0,
+			gl!.RGBA,
+			useHalfFloat ? gl!.HALF_FLOAT : gl!.UNSIGNED_BYTE,
+			null,
+		);
+		const fbo = gl!.createFramebuffer()!;
+		gl!.bindFramebuffer(gl!.FRAMEBUFFER, fbo);
+		gl!.framebufferTexture2D(
+			gl!.FRAMEBUFFER,
+			gl!.COLOR_ATTACHMENT0,
+			gl!.TEXTURE_2D,
+			texture,
+			0,
+		);
+		gl!.viewport(0, 0, width, height);
+		gl!.clearColor(0, 0, 0, 0);
+		gl!.clear(gl!.COLOR_BUFFER_BIT);
+		return { fbo, texture, width, height };
+	}
 
-  function releaseTarget(target: Target | null) {
-    if (!target) return;
-    gl!.deleteFramebuffer(target.fbo);
-    gl!.deleteTexture(target.texture);
-  }
+	function releaseTarget(target: Target | null) {
+		if (!target) return;
+		gl!.deleteFramebuffer(target.fbo);
+		gl!.deleteTexture(target.texture);
+	}
 
-  function createDoubleTarget(
-    width: number,
-    height: number,
-    useHalfFloat: boolean,
-  ): DoubleTarget {
-    let read = createTarget(width, height, useHalfFloat, gl!.CLAMP_TO_EDGE);
-    let write = createTarget(width, height, useHalfFloat, gl!.CLAMP_TO_EDGE);
-    return {
-      get read() {
-        return read;
-      },
-      get write() {
-        return write;
-      },
-      swap() {
-        const t = read;
-        read = write;
-        write = t;
-      },
-    };
-  }
+	function createDoubleTarget(
+		width: number,
+		height: number,
+		useHalfFloat: boolean,
+	): DoubleTarget {
+		let read = createTarget(width, height, useHalfFloat, gl!.CLAMP_TO_EDGE);
+		let write = createTarget(width, height, useHalfFloat, gl!.CLAMP_TO_EDGE);
+		return {
+			get read() {
+				return read;
+			},
+			get write() {
+				return write;
+			},
+			swap() {
+				const t = read;
+				read = write;
+				write = t;
+			},
+		};
+	}
 
-  let frostTarget: Target | null = null;
-  let blurA: Target | null = null;
-  let blurB: Target | null = null;
-  let pointer: DoubleTarget | null = null;
+	let frostTarget: Target | null = null;
+	let blurA: Target | null = null;
+	let blurB: Target | null = null;
+	let pointer: DoubleTarget | null = null;
 
-  const heightTarget = createTarget(HEIGHT_RES, HEIGHT_RES, false, gl.REPEAT);
-  const noiseTarget = createTarget(NOISE_RES, NOISE_RES, false, gl.REPEAT);
+	const heightTarget = createTarget(HEIGHT_RES, HEIGHT_RES, false, gl.REPEAT);
+	const noiseTarget = createTarget(NOISE_RES, NOISE_RES, false, gl.REPEAT);
 
-  function blit(target: Target | null) {
-    if (target) {
-      gl!.bindFramebuffer(gl!.FRAMEBUFFER, target.fbo);
-      gl!.viewport(0, 0, target.width, target.height);
-    } else {
-      gl!.bindFramebuffer(gl!.FRAMEBUFFER, null);
-      gl!.viewport(0, 0, output.width, output.height);
-    }
-    gl!.drawArrays(gl!.TRIANGLE_STRIP, 0, 4);
-  }
+	function blit(target: Target | null) {
+		if (target) {
+			gl!.bindFramebuffer(gl!.FRAMEBUFFER, target.fbo);
+			gl!.viewport(0, 0, target.width, target.height);
+		} else {
+			gl!.bindFramebuffer(gl!.FRAMEBUFFER, null);
+			gl!.viewport(0, 0, output.width, output.height);
+		}
+		gl!.drawArrays(gl!.TRIANGLE_STRIP, 0, 4);
+	}
 
-  function bindTexture(texture: WebGLTexture, unit: number): number {
-    gl!.activeTexture(gl!.TEXTURE0 + unit);
-    gl!.bindTexture(gl!.TEXTURE_2D, texture);
-    return unit;
-  }
+	function bindTexture(texture: WebGLTexture, unit: number): number {
+		gl!.activeTexture(gl!.TEXTURE0 + unit);
+		gl!.bindTexture(gl!.TEXTURE_2D, texture);
+		return unit;
+	}
 
-  gl.useProgram(heightProgram.program);
-  blit(heightTarget);
-  gl.useProgram(noiseProgram.program);
-  blit(noiseTarget);
+	gl.useProgram(heightProgram.program);
+	blit(heightTarget);
+	gl.useProgram(noiseProgram.program);
+	blit(noiseTarget);
 
-  const contentTexture = gl.createTexture()!;
-  gl.bindTexture(gl.TEXTURE_2D, contentTexture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGBA,
-    1,
-    1,
-    0,
-    gl.RGBA,
-    gl.UNSIGNED_BYTE,
-    new Uint8Array([0, 0, 0, 0]),
-  );
+	const contentTexture = gl.createTexture()!;
+	gl.bindTexture(gl.TEXTURE_2D, contentTexture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texImage2D(
+		gl.TEXTURE_2D,
+		0,
+		gl.RGBA,
+		1,
+		1,
+		0,
+		gl.RGBA,
+		gl.UNSIGNED_BYTE,
+		new Uint8Array([0, 0, 0, 0]),
+	);
 
-  let blurDirty = true;
-  let targetsReady = false;
+	let blurDirty = true;
+	let targetsReady = false;
 
-  function rebuildTargets() {
-    const width = Math.max(output.width, 1);
-    const height = Math.max(output.height, 1);
-    const blurScale = 0.35 * Math.min(Math.max(config.quality, 0.25), 1);
-    const bw = Math.max(1, Math.round(width * blurScale));
-    const bh = Math.max(1, Math.round(height * blurScale));
-    releaseTarget(frostTarget);
-    releaseTarget(blurA);
-    releaseTarget(blurB);
-    if (pointer) {
-      releaseTarget(pointer.read);
-      releaseTarget(pointer.write);
-    }
-    frostTarget = createTarget(width, height, false, gl!.CLAMP_TO_EDGE);
-    blurA = createTarget(bw, bh, false, gl!.CLAMP_TO_EDGE);
-    blurB = createTarget(bw, bh, false, gl!.CLAMP_TO_EDGE);
-    pointer = createDoubleTarget(
-      Math.max(1, Math.round(width * 0.5)),
-      Math.max(1, Math.round(height * 0.5)),
-      halfFloat,
-    );
-    targetsReady = true;
-    blurDirty = true;
-  }
+	function rebuildTargets() {
+		const width = Math.max(output.width, 1);
+		const height = Math.max(output.height, 1);
+		const blurScale = 0.35 * Math.min(Math.max(config.quality, 0.25), 1);
+		const bw = Math.max(1, Math.round(width * blurScale));
+		const bh = Math.max(1, Math.round(height * blurScale));
+		releaseTarget(frostTarget);
+		releaseTarget(blurA);
+		releaseTarget(blurB);
+		if (pointer) {
+			releaseTarget(pointer.read);
+			releaseTarget(pointer.write);
+		}
+		frostTarget = createTarget(width, height, false, gl!.CLAMP_TO_EDGE);
+		blurA = createTarget(bw, bh, false, gl!.CLAMP_TO_EDGE);
+		blurB = createTarget(bw, bh, false, gl!.CLAMP_TO_EDGE);
+		pointer = createDoubleTarget(
+			Math.max(1, Math.round(width * 0.5)),
+			Math.max(1, Math.round(height * 0.5)),
+			halfFloat,
+		);
+		targetsReady = true;
+		blurDirty = true;
+	}
 
-  function syncCanvasSize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const width = Math.max(1, Math.round(output.clientWidth * dpr));
-    const height = Math.max(1, Math.round(output.clientHeight * dpr));
-    if (output.width !== width || output.height !== height) {
-      output.width = width;
-      output.height = height;
-      rebuildTargets();
-    } else if (!targetsReady) {
-      rebuildTargets();
-    }
-    if (htmlInCanvas) {
-      const cssWidth = Math.max(1, Math.round(source.clientWidth));
-      const cssHeight = Math.max(1, Math.round(source.clientHeight));
-      if (source.width !== cssWidth * dpr || source.height !== cssHeight * dpr) {
-        source.width = cssWidth * dpr;
-        source.height = cssHeight * dpr;
-      }
-      paintable.requestPaint!();
-    }
-  }
+	function syncCanvasSize() {
+		const dpr = Math.min(window.devicePixelRatio || 1, 2);
+		const width = Math.max(1, Math.round(output.clientWidth * dpr));
+		const height = Math.max(1, Math.round(output.clientHeight * dpr));
+		if (output.width !== width || output.height !== height) {
+			output.width = width;
+			output.height = height;
+			rebuildTargets();
+		} else if (!targetsReady) {
+			rebuildTargets();
+		}
+		if (htmlInCanvas) {
+			const cssWidth = Math.max(1, Math.round(source.clientWidth));
+			const cssHeight = Math.max(1, Math.round(source.clientHeight));
+			if (
+				source.width !== cssWidth * dpr ||
+				source.height !== cssHeight * dpr
+			) {
+				source.width = cssWidth * dpr;
+				source.height = cssHeight * dpr;
+			}
+			paintable.requestPaint!();
+		}
+	}
 
-  syncCanvasSize();
+	syncCanvasSize();
 
-  if (htmlInCanvas) {
-    captureContent();
-  } else {
-    // Without html-in-canvas, stock Frost paints a soft icy overlay only.
-    // Rasterize the DOM so crystalline refraction can run like the docs demo.
-    const captureFallback = () => {
-      if (destroyed || fallbackCapturing) return;
-      fallbackCapturing = true;
-      void import("html-to-image")
-        .then(({ toCanvas }) =>
-          toCanvas(content, {
-            pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
-            cacheBust: false,
-            skipAutoScale: true,
-          }),
-        )
-        .then((shot) => {
-          if (destroyed || gl.isContextLost()) return;
-          gl.bindTexture(gl.TEXTURE_2D, contentTexture);
-          gl.texImage2D(
-            gl.TEXTURE_2D,
-            0,
-            gl.RGBA,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            shot,
-          );
-          hasContentTexture = true;
-          contentDirty = true;
-          blurDirty = true;
-          contentReady = true;
-          // Keep introStart from mount so the edge→center grow isn't delayed by capture.
-          wake();
-        })
-        .catch(() => {
-          /* keep soft overlay if capture fails */
-        })
-        .finally(() => {
-          fallbackCapturing = false;
-        });
-    };
-    captureFallback();
-    fallbackTimer = window.setInterval(captureFallback, 450);
-  }
+	if (htmlInCanvas) {
+		captureContent();
+	} else {
+		// Without html-in-canvas, stock Frost paints a soft icy overlay only.
+		// Rasterize the DOM so crystalline refraction can run like the docs demo.
+		const captureFallback = () => {
+			if (destroyed || fallbackCapturing) return;
+			fallbackCapturing = true;
+			void import("html-to-image")
+				.then(({ toCanvas }) =>
+					toCanvas(content, {
+						pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
+						cacheBust: false,
+						skipAutoScale: true,
+					}),
+				)
+				.then((shot) => {
+					if (destroyed || gl.isContextLost()) return;
+					gl.bindTexture(gl.TEXTURE_2D, contentTexture);
+					gl.texImage2D(
+						gl.TEXTURE_2D,
+						0,
+						gl.RGBA,
+						gl.RGBA,
+						gl.UNSIGNED_BYTE,
+						shot,
+					);
+					hasContentTexture = true;
+					contentDirty = true;
+					blurDirty = true;
+					contentReady = true;
+					// Keep introStart from mount so the edge→center grow isn't delayed by capture.
+					wake();
+				})
+				.catch(() => {
+					/* keep soft overlay if capture fails */
+				})
+				.finally(() => {
+					fallbackCapturing = false;
+				});
+		};
+		captureFallback();
+		fallbackTimer = window.setInterval(captureFallback, 450);
+	}
 
-  function uploadContent() {
-    if (!htmlInCanvas || !contentDirty) return;
-    contentDirty = false;
-    blurDirty = true;
-    gl!.bindTexture(gl!.TEXTURE_2D, contentTexture);
-    gl!.texImage2D(
-      gl!.TEXTURE_2D,
-      0,
-      gl!.RGBA,
-      gl!.RGBA,
-      gl!.UNSIGNED_BYTE,
-      source,
-    );
-    hasContentTexture = true;
-    contentReady = true;
-    // Keep introStart from mount so the edge→center grow isn't delayed by capture.
-  }
+	function uploadContent() {
+		if (!htmlInCanvas || !contentDirty) return;
+		contentDirty = false;
+		blurDirty = true;
+		gl!.bindTexture(gl!.TEXTURE_2D, contentTexture);
+		gl!.texImage2D(
+			gl!.TEXTURE_2D,
+			0,
+			gl!.RGBA,
+			gl!.RGBA,
+			gl!.UNSIGNED_BYTE,
+			source,
+		);
+		hasContentTexture = true;
+		contentReady = true;
+		// Keep introStart from mount so the edge→center grow isn't delayed by capture.
+	}
 
-  function renderBlur() {
-    if (!blurDirty || !hasContentTexture || !blurA || !blurB) return;
-    blurDirty = false;
-    gl!.useProgram(blurProgram.program);
-    gl!.uniform2f(
-      blurProgram.uniforms.uTexelSize,
-      1 / blurA.width,
-      1 / blurA.height,
-    );
-    gl!.uniform1i(blurProgram.uniforms.uScene, bindTexture(contentTexture, 0));
-    gl!.uniform2f(blurProgram.uniforms.uStep, 0, 1);
-    gl!.uniform1f(blurProgram.uniforms.uFlipY, 1);
-    blit(blurA);
-    gl!.uniform1i(blurProgram.uniforms.uScene, bindTexture(blurA.texture, 0));
-    gl!.uniform2f(blurProgram.uniforms.uStep, 1, 0);
-    gl!.uniform1f(blurProgram.uniforms.uFlipY, 0);
-    blit(blurB);
-  }
+	function renderBlur() {
+		if (!blurDirty || !hasContentTexture || !blurA || !blurB) return;
+		blurDirty = false;
+		gl!.useProgram(blurProgram.program);
+		gl!.uniform2f(
+			blurProgram.uniforms.uTexelSize,
+			1 / blurA.width,
+			1 / blurA.height,
+		);
+		gl!.uniform1i(blurProgram.uniforms.uScene, bindTexture(contentTexture, 0));
+		gl!.uniform2f(blurProgram.uniforms.uStep, 0, 1);
+		gl!.uniform1f(blurProgram.uniforms.uFlipY, 1);
+		blit(blurA);
+		gl!.uniform1i(blurProgram.uniforms.uScene, bindTexture(blurA.texture, 0));
+		gl!.uniform2f(blurProgram.uniforms.uStep, 1, 0);
+		gl!.uniform1f(blurProgram.uniforms.uFlipY, 0);
+		blit(blurB);
+	}
 
-  let pointerOn = false;
-  let pointerX = 0.5;
-  let pointerY = 0.5;
-  let prevPointerX = 0.5;
-  let prevPointerY = 0.5;
-  let lastScrollX = 0;
-  let lastScrollY = 0;
-  let queuedMelts: Array<[number, number]> = [];
+	let pointerOn = false;
+	let pointerX = 0.5;
+	let pointerY = 0.5;
+	let prevPointerX = 0.5;
+	let prevPointerY = 0.5;
+	let lastScrollX = 0;
+	let lastScrollY = 0;
+	let queuedMelts: Array<[number, number]> = [];
 
-  function renderPointer() {
-    if (!pointer) return;
-    const cssW = Math.max(output.clientWidth, 1);
-    const cssH = Math.max(output.clientHeight, 1);
-    const sx = content.scrollLeft;
-    const sy = content.scrollTop;
-    gl!.useProgram(pointerProgram.program);
-    gl!.uniform1i(
-      pointerProgram.uniforms.uBack,
-      bindTexture(pointer.read.texture, 0),
-    );
-    gl!.uniform1i(
-      pointerProgram.uniforms.uNoise,
-      bindTexture(noiseTarget.texture, 1),
-    );
-    gl!.uniform1f(
-      pointerProgram.uniforms.uAspect,
-      output.width / Math.max(output.height, 1),
-    );
-    gl!.uniform2f(
-      pointerProgram.uniforms.uBackShift,
-      (sx - lastScrollX) / cssW,
-      -(sy - lastScrollY) / cssH,
-    );
-    gl!.uniform2f(pointerProgram.uniforms.uScroll, sx / cssW, -sy / cssH);
-    gl!.uniform1f(pointerProgram.uniforms.uTextureScale, config.textureScale);
-    gl!.uniform1f(pointerProgram.uniforms.uDecay, config.refreeze * 0.001);
-    gl!.uniform1f(pointerProgram.uniforms.uMeltNoise, config.meltNoise);
-    gl!.uniform1f(
-      pointerProgram.uniforms.uMeltStrength,
-      config.meltStrength * 0.2,
-    );
-    gl!.uniform1f(pointerProgram.uniforms.uRadius, config.meltRadius);
-    gl!.uniform1f(
-      pointerProgram.uniforms.uEdgeFade,
-      config.meltEdges ? 0 : config.edgeFade,
-    );
-    if (queuedMelts.length > 0) {
-      for (const [mx, my] of queuedMelts) {
-        gl!.uniform2f(pointerProgram.uniforms.uPoint, mx, 1 - my);
-        gl!.uniform2f(pointerProgram.uniforms.uPrevPoint, mx, 1 - my);
-        gl!.uniform1f(pointerProgram.uniforms.uTouching, 1);
-        blit(pointer.write);
-        pointer.swap();
-        gl!.uniform1i(
-          pointerProgram.uniforms.uBack,
-          bindTexture(pointer.read.texture, 0),
-        );
-        gl!.uniform2f(pointerProgram.uniforms.uBackShift, 0, 0);
-      }
-      queuedMelts = [];
-    } else {
-      gl!.uniform2f(pointerProgram.uniforms.uPoint, pointerX, 1 - pointerY);
-      gl!.uniform2f(
-        pointerProgram.uniforms.uPrevPoint,
-        prevPointerX,
-        1 - prevPointerY,
-      );
-      gl!.uniform1f(pointerProgram.uniforms.uTouching, pointerOn ? 1 : 0);
-      blit(pointer.write);
-      pointer.swap();
-    }
-    lastScrollX = sx;
-    lastScrollY = sy;
-    prevPointerX = pointerX;
-    prevPointerY = pointerY;
-  }
+	function renderPointer() {
+		if (!pointer) return;
+		const cssW = Math.max(output.clientWidth, 1);
+		const cssH = Math.max(output.clientHeight, 1);
+		const sx = content.scrollLeft;
+		const sy = content.scrollTop;
+		gl!.useProgram(pointerProgram.program);
+		gl!.uniform1i(
+			pointerProgram.uniforms.uBack,
+			bindTexture(pointer.read.texture, 0),
+		);
+		gl!.uniform1i(
+			pointerProgram.uniforms.uNoise,
+			bindTexture(noiseTarget.texture, 1),
+		);
+		gl!.uniform1f(
+			pointerProgram.uniforms.uAspect,
+			output.width / Math.max(output.height, 1),
+		);
+		gl!.uniform2f(
+			pointerProgram.uniforms.uBackShift,
+			(sx - lastScrollX) / cssW,
+			-(sy - lastScrollY) / cssH,
+		);
+		gl!.uniform2f(pointerProgram.uniforms.uScroll, sx / cssW, -sy / cssH);
+		gl!.uniform1f(pointerProgram.uniforms.uTextureScale, config.textureScale);
+		gl!.uniform1f(pointerProgram.uniforms.uDecay, config.refreeze * 0.001);
+		gl!.uniform1f(pointerProgram.uniforms.uMeltNoise, config.meltNoise);
+		gl!.uniform1f(
+			pointerProgram.uniforms.uMeltStrength,
+			config.meltStrength * 0.2,
+		);
+		gl!.uniform1f(pointerProgram.uniforms.uRadius, config.meltRadius);
+		gl!.uniform1f(
+			pointerProgram.uniforms.uEdgeFade,
+			config.meltEdges ? 0 : config.edgeFade,
+		);
+		if (queuedMelts.length > 0) {
+			for (const [mx, my] of queuedMelts) {
+				gl!.uniform2f(pointerProgram.uniforms.uPoint, mx, 1 - my);
+				gl!.uniform2f(pointerProgram.uniforms.uPrevPoint, mx, 1 - my);
+				gl!.uniform1f(pointerProgram.uniforms.uTouching, 1);
+				blit(pointer.write);
+				pointer.swap();
+				gl!.uniform1i(
+					pointerProgram.uniforms.uBack,
+					bindTexture(pointer.read.texture, 0),
+				);
+				gl!.uniform2f(pointerProgram.uniforms.uBackShift, 0, 0);
+			}
+			queuedMelts = [];
+		} else {
+			gl!.uniform2f(pointerProgram.uniforms.uPoint, pointerX, 1 - pointerY);
+			gl!.uniform2f(
+				pointerProgram.uniforms.uPrevPoint,
+				prevPointerX,
+				1 - prevPointerY,
+			);
+			gl!.uniform1f(pointerProgram.uniforms.uTouching, pointerOn ? 1 : 0);
+			blit(pointer.write);
+			pointer.swap();
+		}
+		lastScrollX = sx;
+		lastScrollY = sy;
+		prevPointerX = pointerX;
+		prevPointerY = pointerY;
+	}
 
-  function renderFrost(now: number) {
-    if (!frostTarget || !pointer || !blurB) return;
-    const cssW = Math.max(output.clientWidth, 1);
-    const cssH = Math.max(output.clientHeight, 1);
-    gl!.useProgram(frostProgram.program);
-    gl!.uniform1i(
-      frostProgram.uniforms.uContent,
-      bindTexture(contentTexture, 0),
-    );
-    gl!.uniform1i(frostProgram.uniforms.uBlur, bindTexture(blurB.texture, 1));
-    gl!.uniform1i(
-      frostProgram.uniforms.uNoise,
-      bindTexture(noiseTarget.texture, 2),
-    );
-    gl!.uniform1i(
-      frostProgram.uniforms.uPointer,
-      bindTexture(pointer.read.texture, 3),
-    );
-    gl!.uniform2f(
-      frostProgram.uniforms.uScroll,
-      content.scrollLeft / cssW,
-      -content.scrollTop / cssH,
-    );
-    gl!.uniform1f(
-      frostProgram.uniforms.uAspect,
-      output.width / Math.max(output.height, 1),
-    );
-    gl!.uniform1f(frostProgram.uniforms.uTextureScale, config.textureScale);
-    gl!.uniform1f(frostProgram.uniforms.uMeltEdges, config.meltEdges ? 1 : 0);
-    gl!.uniform1f(frostProgram.uniforms.uIntro, introProgress(now));
-    gl!.uniform1f(frostProgram.uniforms.uHighlight, config.highlight);
-    gl!.uniform1f(frostProgram.uniforms.uStrength, config.strength);
-    gl!.uniform1f(frostProgram.uniforms.uFrost, config.frost);
-    gl!.uniform1f(frostProgram.uniforms.uContrast, config.contrast);
-    gl!.uniform1f(frostProgram.uniforms.uCrispness, config.crispness);
-    gl!.uniform1f(frostProgram.uniforms.uHaze, config.haze);
-    gl!.uniform3f(
-      frostProgram.uniforms.uTintThin,
-      config.tintThin[0],
-      config.tintThin[1],
-      config.tintThin[2],
-    );
-    gl!.uniform3f(
-      frostProgram.uniforms.uTintThick,
-      config.tintThick[0],
-      config.tintThick[1],
-      config.tintThick[2],
-    );
-    gl!.uniform1f(frostProgram.uniforms.uTintStrength, config.tintStrength);
-    gl!.uniform1f(
-      frostProgram.uniforms.uHighlightStrength,
-      config.highlightStrength,
-    );
-    gl!.uniform1f(frostProgram.uniforms.uSaturation, config.saturation);
-    gl!.uniform1f(frostProgram.uniforms.uBrightness, config.brightness);
-    gl!.uniform1f(frostProgram.uniforms.uShimmer, config.shimmer);
-    gl!.uniform1f(frostProgram.uniforms.uTime, now / 1000);
-    gl!.uniform1f(
-      frostProgram.uniforms.uOpacity,
-      Math.min(Math.max(config.opacity, 0), 1),
-    );
-    gl!.uniform1f(
-      frostProgram.uniforms.uHasContent,
-      hasContentTexture ? 1 : 0,
-    );
-    blit(frostTarget);
-  }
+	function renderFrost(now: number) {
+		if (!frostTarget || !pointer || !blurB) return;
+		const cssW = Math.max(output.clientWidth, 1);
+		const cssH = Math.max(output.clientHeight, 1);
+		gl!.useProgram(frostProgram.program);
+		gl!.uniform1i(
+			frostProgram.uniforms.uContent,
+			bindTexture(contentTexture, 0),
+		);
+		gl!.uniform1i(frostProgram.uniforms.uBlur, bindTexture(blurB.texture, 1));
+		gl!.uniform1i(
+			frostProgram.uniforms.uNoise,
+			bindTexture(noiseTarget.texture, 2),
+		);
+		gl!.uniform1i(
+			frostProgram.uniforms.uPointer,
+			bindTexture(pointer.read.texture, 3),
+		);
+		gl!.uniform2f(
+			frostProgram.uniforms.uScroll,
+			content.scrollLeft / cssW,
+			-content.scrollTop / cssH,
+		);
+		gl!.uniform1f(
+			frostProgram.uniforms.uAspect,
+			output.width / Math.max(output.height, 1),
+		);
+		gl!.uniform1f(frostProgram.uniforms.uTextureScale, config.textureScale);
+		gl!.uniform1f(frostProgram.uniforms.uMeltEdges, config.meltEdges ? 1 : 0);
+		gl!.uniform1f(frostProgram.uniforms.uIntro, introProgress(now));
+		gl!.uniform1f(frostProgram.uniforms.uHighlight, config.highlight);
+		gl!.uniform1f(frostProgram.uniforms.uStrength, config.strength);
+		gl!.uniform1f(frostProgram.uniforms.uFrost, config.frost);
+		gl!.uniform1f(frostProgram.uniforms.uContrast, config.contrast);
+		gl!.uniform1f(frostProgram.uniforms.uCrispness, config.crispness);
+		gl!.uniform1f(frostProgram.uniforms.uHaze, config.haze);
+		gl!.uniform3f(
+			frostProgram.uniforms.uTintThin,
+			config.tintThin[0],
+			config.tintThin[1],
+			config.tintThin[2],
+		);
+		gl!.uniform3f(
+			frostProgram.uniforms.uTintThick,
+			config.tintThick[0],
+			config.tintThick[1],
+			config.tintThick[2],
+		);
+		gl!.uniform1f(frostProgram.uniforms.uTintStrength, config.tintStrength);
+		gl!.uniform1f(
+			frostProgram.uniforms.uHighlightStrength,
+			config.highlightStrength,
+		);
+		gl!.uniform1f(frostProgram.uniforms.uSaturation, config.saturation);
+		gl!.uniform1f(frostProgram.uniforms.uBrightness, config.brightness);
+		gl!.uniform1f(frostProgram.uniforms.uShimmer, config.shimmer);
+		gl!.uniform1f(frostProgram.uniforms.uTime, now / 1000);
+		gl!.uniform1f(
+			frostProgram.uniforms.uOpacity,
+			Math.min(Math.max(config.opacity, 0), 1),
+		);
+		gl!.uniform1f(frostProgram.uniforms.uHasContent, hasContentTexture ? 1 : 0);
+		blit(frostTarget);
+	}
 
-  function renderOutput() {
-    if (!frostTarget) return;
-    const dpr = output.width / Math.max(output.clientWidth, 1);
-    gl!.useProgram(outputProgram.program);
-    gl!.uniform1i(
-      outputProgram.uniforms.uFrost,
-      bindTexture(frostTarget.texture, 0),
-    );
-    gl!.uniform1i(
-      outputProgram.uniforms.uHeights,
-      bindTexture(heightTarget.texture, 2),
-    );
-    gl!.uniform1f(outputProgram.uniforms.uIor, Math.max(config.ior, 1.01));
-    gl!.uniform1f(outputProgram.uniforms.uRefraction, config.refraction);
-    gl!.uniform1f(outputProgram.uniforms.uDetail, config.detail);
-    gl!.uniform1f(outputProgram.uniforms.uTextureScale, config.textureScale);
-    gl!.uniform1f(outputProgram.uniforms.uFresnel, config.fresnel);
-    gl!.uniform2f(
-      outputProgram.uniforms.uScrollPx,
-      content.scrollLeft * dpr,
-      -content.scrollTop * dpr,
-    );
-    gl!.uniform1f(
-      outputProgram.uniforms.uHasContent,
-      hasContentTexture ? 1 : 0,
-    );
-    gl!.uniform1f(outputProgram.uniforms.uFallbackAlpha, 0.85);
-    blit(null);
-  }
+	function renderOutput() {
+		if (!frostTarget) return;
+		const dpr = output.width / Math.max(output.clientWidth, 1);
+		gl!.useProgram(outputProgram.program);
+		gl!.uniform1i(
+			outputProgram.uniforms.uFrost,
+			bindTexture(frostTarget.texture, 0),
+		);
+		gl!.uniform1i(
+			outputProgram.uniforms.uHeights,
+			bindTexture(heightTarget.texture, 2),
+		);
+		gl!.uniform1f(outputProgram.uniforms.uIor, Math.max(config.ior, 1.01));
+		gl!.uniform1f(outputProgram.uniforms.uRefraction, config.refraction);
+		gl!.uniform1f(outputProgram.uniforms.uDetail, config.detail);
+		gl!.uniform1f(outputProgram.uniforms.uTextureScale, config.textureScale);
+		gl!.uniform1f(outputProgram.uniforms.uFresnel, config.fresnel);
+		gl!.uniform2f(
+			outputProgram.uniforms.uScrollPx,
+			content.scrollLeft * dpr,
+			-content.scrollTop * dpr,
+		);
+		gl!.uniform1f(
+			outputProgram.uniforms.uHasContent,
+			hasContentTexture ? 1 : 0,
+		);
+		gl!.uniform1f(outputProgram.uniforms.uFallbackAlpha, 0.85);
+		blit(null);
+	}
 
-  let raf = 0;
-  let running = false;
-  let visible = true;
-  let activeUntil = 0;
-  let introStart = performance.now();
+	let raf = 0;
+	let running = false;
+	let visible = true;
+	let activeUntil = 0;
+	let introStart = performance.now();
 
-  function introProgress(now: number) {
-    const introMs = Math.max(config.introDuration, 0) * 1000;
-    if (introMs <= 0 || reducedMotion) return 1;
-    const t = Math.min(Math.max((now - introStart) / introMs, 0), 1);
-    return t * t * (3 - 2 * t);
-  }
+	function introProgress(now: number) {
+		const introMs = Math.max(config.introDuration, 0) * 1000;
+		if (introMs <= 0 || reducedMotion) return 1;
+		const t = Math.min(Math.max((now - introStart) / introMs, 0), 1);
+		return t * t * (3 - 2 * t);
+	}
 
-  function refreezeDelayMs() {
-    const decay = Math.max(config.refreeze * 0.001, 1e-5);
-    return (1 / decay / 60) * 1000 + 500;
-  }
+	function refreezeDelayMs() {
+		const decay = Math.max(config.refreeze * 0.001, 1e-5);
+		return (1 / decay / 60) * 1000 + 500;
+	}
 
-  function frame(now: number) {
-    if (destroyed) return;
-    if (!visible) {
-      running = false;
-      return;
-    }
-    gl!.disable(gl!.BLEND);
-    uploadContent();
-    // Don't block the edge→center intro on content capture — that felt like a dead delay.
-    if (contentReady) {
-      renderBlur();
-      renderPointer();
-    }
-    renderFrost(now);
-    renderOutput();
+	function frame(now: number) {
+		if (destroyed) return;
+		if (!visible) {
+			running = false;
+			return;
+		}
+		gl!.disable(gl!.BLEND);
+		uploadContent();
+		// Don't block the edge→center intro on content capture — that felt like a dead delay.
+		if (contentReady) {
+			renderBlur();
+			renderPointer();
+		}
+		renderFrost(now);
+		renderOutput();
 
-    const animating =
-      pointerOn ||
-      now < activeUntil ||
-      now < introStart + Math.max(config.introDuration, 0) * 1000 + 120 ||
-      contentDirty ||
-      !contentReady ||
-      config.shimmer > 0.001;
-    if (!animating) {
-      running = false;
-      return;
-    }
-    raf = requestAnimationFrame(frame);
-  }
+		const animating =
+			pointerOn ||
+			now < activeUntil ||
+			now < introStart + Math.max(config.introDuration, 0) * 1000 + 120 ||
+			contentDirty ||
+			!contentReady ||
+			config.shimmer > 0.001;
+		if (!animating) {
+			running = false;
+			return;
+		}
+		raf = requestAnimationFrame(frame);
+	}
 
-  function start() {
-    if (destroyed || running || !visible) return;
-    running = true;
-    raf = requestAnimationFrame(frame);
-  }
+	function start() {
+		if (destroyed || running || !visible) return;
+		running = true;
+		raf = requestAnimationFrame(frame);
+	}
 
-  wake = start;
-  start();
+	wake = start;
+	start();
 
-  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let reducedMotion = motionQuery.matches;
+	const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+	let reducedMotion = motionQuery.matches;
 
-  function onMotionChange() {
-    reducedMotion = motionQuery.matches;
-    if (!reducedMotion) start();
-  }
-  motionQuery.addEventListener("change", onMotionChange);
+	function onMotionChange() {
+		reducedMotion = motionQuery.matches;
+		if (!reducedMotion) start();
+	}
+	motionQuery.addEventListener("change", onMotionChange);
 
-  function onPointerMove(event: PointerEvent) {
-    if (reducedMotion) return;
-    const rect = output.getBoundingClientRect();
-    pointerX = (event.clientX - rect.left) / Math.max(rect.width, 1);
-    pointerY = (event.clientY - rect.top) / Math.max(rect.height, 1);
-    pointerOn = true;
-    activeUntil = performance.now() + refreezeDelayMs();
-    start();
-  }
+	function onPointerMove(event: PointerEvent) {
+		if (reducedMotion) return;
+		const rect = output.getBoundingClientRect();
+		pointerX = (event.clientX - rect.left) / Math.max(rect.width, 1);
+		pointerY = (event.clientY - rect.top) / Math.max(rect.height, 1);
+		pointerOn = true;
+		activeUntil = performance.now() + refreezeDelayMs();
+		start();
+	}
 
-  function onPointerLeave() {
-    pointerOn = false;
-    activeUntil = performance.now() + refreezeDelayMs();
-    start();
-  }
+	function onPointerLeave() {
+		pointerOn = false;
+		activeUntil = performance.now() + refreezeDelayMs();
+		start();
+	}
 
-  const listenTarget = output.parentElement ?? output;
-  listenTarget.addEventListener("pointermove", onPointerMove as EventListener);
-  listenTarget.addEventListener("pointerdown", onPointerMove as EventListener);
-  listenTarget.addEventListener(
-    "pointerleave",
-    onPointerLeave as EventListener,
-  );
-  listenTarget.addEventListener(
-    "pointercancel",
-    onPointerLeave as EventListener,
-  );
+	const listenTarget = output.parentElement ?? output;
+	listenTarget.addEventListener("pointermove", onPointerMove as EventListener);
+	listenTarget.addEventListener("pointerdown", onPointerMove as EventListener);
+	listenTarget.addEventListener(
+		"pointerleave",
+		onPointerLeave as EventListener,
+	);
+	listenTarget.addEventListener(
+		"pointercancel",
+		onPointerLeave as EventListener,
+	);
 
-  function onScroll() {
-    activeUntil = Math.max(activeUntil, performance.now() + 400);
-    if (htmlInCanvas) paintable.requestPaint?.();
-    start();
-  }
-  content.addEventListener("scroll", onScroll, { passive: true });
+	function onScroll() {
+		activeUntil = Math.max(activeUntil, performance.now() + 400);
+		if (htmlInCanvas) paintable.requestPaint?.();
+		start();
+	}
+	content.addEventListener("scroll", onScroll, { passive: true });
 
-  const observer = new ResizeObserver(() => {
-    syncCanvasSize();
-    start();
-  });
-  observer.observe(output);
+	const observer = new ResizeObserver(() => {
+		syncCanvasSize();
+		start();
+	});
+	observer.observe(output);
 
-  const intersection = new IntersectionObserver((entries) => {
-    visible = entries[entries.length - 1]?.isIntersecting ?? true;
-    if (visible) start();
-  });
-  intersection.observe(output);
+	const intersection = new IntersectionObserver((entries) => {
+		visible = entries[entries.length - 1]?.isIntersecting ?? true;
+		if (visible) start();
+	});
+	intersection.observe(output);
 
-  return {
-    melt(x, y) {
-      if (reducedMotion) return;
-      queuedMelts.push([x, y]);
-      activeUntil = performance.now() + refreezeDelayMs();
-      start();
-    },
-    setOptions(next) {
-      const { quality, ...rest } = next;
-      const qualityChanged =
-        quality !== undefined && quality !== config.quality;
-      Object.assign(config, rest);
-      if (qualityChanged) {
-        config.quality = quality!;
-        rebuildTargets();
-      }
-      activeUntil = Math.max(activeUntil, performance.now() + 100);
-      start();
-    },
-    resize() {
-      syncCanvasSize();
-      start();
-    },
-    destroy() {
-      destroyed = true;
-      cancelAnimationFrame(raf);
-      if (fallbackTimer) window.clearInterval(fallbackTimer);
-      observer.disconnect();
-      intersection.disconnect();
-      motionQuery.removeEventListener("change", onMotionChange);
-      releaseTarget(noiseTarget);
-      releaseTarget(frostTarget);
-      releaseTarget(blurA);
-      releaseTarget(blurB);
-      if (pointer) {
-        releaseTarget(pointer.read);
-        releaseTarget(pointer.write);
-      }
-      releaseTarget(heightTarget);
-      gl!.deleteTexture(contentTexture);
-      programs.forEach((program) => gl!.deleteProgram(program));
-      shaders.forEach((shader) => gl!.deleteShader(shader));
-      gl!.deleteBuffer(quad);
-      if (htmlInCanvas) paintable.onpaint = null;
-      content.removeEventListener("scroll", onScroll);
-      listenTarget.removeEventListener(
-        "pointermove",
-        onPointerMove as EventListener,
-      );
-      listenTarget.removeEventListener(
-        "pointerdown",
-        onPointerMove as EventListener,
-      );
-      listenTarget.removeEventListener(
-        "pointerleave",
-        onPointerLeave as EventListener,
-      );
-      listenTarget.removeEventListener(
-        "pointercancel",
-        onPointerLeave as EventListener,
-      );
-    },
-  };
+	return {
+		melt(x, y) {
+			if (reducedMotion) return;
+			queuedMelts.push([x, y]);
+			activeUntil = performance.now() + refreezeDelayMs();
+			start();
+		},
+		setOptions(next) {
+			const { quality, ...rest } = next;
+			const qualityChanged =
+				quality !== undefined && quality !== config.quality;
+			Object.assign(config, rest);
+			if (qualityChanged) {
+				config.quality = quality!;
+				rebuildTargets();
+			}
+			activeUntil = Math.max(activeUntil, performance.now() + 100);
+			start();
+		},
+		resize() {
+			syncCanvasSize();
+			start();
+		},
+		destroy() {
+			destroyed = true;
+			cancelAnimationFrame(raf);
+			if (fallbackTimer) window.clearInterval(fallbackTimer);
+			observer.disconnect();
+			intersection.disconnect();
+			motionQuery.removeEventListener("change", onMotionChange);
+			releaseTarget(noiseTarget);
+			releaseTarget(frostTarget);
+			releaseTarget(blurA);
+			releaseTarget(blurB);
+			if (pointer) {
+				releaseTarget(pointer.read);
+				releaseTarget(pointer.write);
+			}
+			releaseTarget(heightTarget);
+			gl!.deleteTexture(contentTexture);
+			programs.forEach((program) => gl!.deleteProgram(program));
+			shaders.forEach((shader) => gl!.deleteShader(shader));
+			gl!.deleteBuffer(quad);
+			if (htmlInCanvas) paintable.onpaint = null;
+			content.removeEventListener("scroll", onScroll);
+			listenTarget.removeEventListener(
+				"pointermove",
+				onPointerMove as EventListener,
+			);
+			listenTarget.removeEventListener(
+				"pointerdown",
+				onPointerMove as EventListener,
+			);
+			listenTarget.removeEventListener(
+				"pointerleave",
+				onPointerLeave as EventListener,
+			);
+			listenTarget.removeEventListener(
+				"pointercancel",
+				onPointerLeave as EventListener,
+			);
+		},
+	};
 }
 
 export interface FrostProps extends FrostOptions {
-  children: ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
+	children: ReactNode;
+	className?: string;
+	style?: React.CSSProperties;
 }
 
 const emptySubscribe = () => () => {};
 
 const useIsomorphicLayoutEffect =
-  typeof window === "undefined" ? useEffect : useLayoutEffect;
+	typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export function Frost({ children, className, style, ...options }: FrostProps) {
-  const sourceRef = useRef<HTMLCanvasElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const outputRef = useRef<HTMLCanvasElement>(null);
-  const instanceRef = useRef<FrostInstance | null>(null);
-  const [initialOptions] = useState(options);
-  const [failed, setFailed] = useState(false);
+	const sourceRef = useRef<HTMLCanvasElement>(null);
+	const contentRef = useRef<HTMLDivElement>(null);
+	const outputRef = useRef<HTMLCanvasElement>(null);
+	const instanceRef = useRef<FrostInstance | null>(null);
+	const [initialOptions] = useState(options);
+	const [failed, setFailed] = useState(false);
 
-  const supported = useSyncExternalStore(
-    emptySubscribe,
-    supportsHtmlInCanvas,
-    () => false,
-  );
-  const native = supported && !failed;
+	const supported = useSyncExternalStore(
+		emptySubscribe,
+		supportsHtmlInCanvas,
+		() => false,
+	);
+	const native = supported && !failed;
 
-  useIsomorphicLayoutEffect(() => {
-    const source = sourceRef.current;
-    const content = contentRef.current;
-    const output = outputRef.current;
-    if (!source || !content || !output) return;
-    instanceRef.current = createFrost(
-      { source, content, output },
-      initialOptions,
-    );
-    if (native && !instanceRef.current) setFailed(true);
-    return () => {
-      instanceRef.current?.destroy();
-      instanceRef.current = null;
-    };
-  }, [initialOptions, native]);
+	useIsomorphicLayoutEffect(() => {
+		const source = sourceRef.current;
+		const content = contentRef.current;
+		const output = outputRef.current;
+		if (!source || !content || !output) return;
+		instanceRef.current = createFrost(
+			{ source, content, output },
+			initialOptions,
+		);
+		if (native && !instanceRef.current) setFailed(true);
+		return () => {
+			instanceRef.current?.destroy();
+			instanceRef.current = null;
+		};
+	}, [initialOptions, native]);
 
-  useEffect(() => {
-    instanceRef.current?.setOptions(options);
-  });
+	useEffect(() => {
+		instanceRef.current?.setOptions(options);
+	});
 
-  return (
-    <div className={className} style={{ position: "relative", ...style }}>
-      <canvas
-        ref={sourceRef}
-        // @ts-expect-error experimental html-in-canvas attribute
-        layoutsubtree="true"
-        suppressHydrationWarning
-        style={
-          native
-            ? { position: "absolute", inset: 0, width: "100%", height: "100%" }
-            : { display: "none" }
-        }
-      >
-        {native ? (
-          <div
-            ref={contentRef}
-            style={{
-              position: "relative",
-              width: "100%",
-              height: "100%",
-              overflow: "auto",
-            }}
-          >
-            {children}
-          </div>
-        ) : null}
-      </canvas>
-      {!native ? (
-        <div
-          ref={contentRef}
-          style={{
-            position: "relative",
-            width: "100%",
-            height: "100%",
-            overflow: "auto",
-          }}
-        >
-          {children}
-        </div>
-      ) : null}
-      <canvas
-        ref={outputRef}
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-        }}
-      />
-    </div>
-  );
+	return (
+		<div className={className} style={{ position: "relative", ...style }}>
+			<canvas
+				ref={sourceRef}
+				// @ts-expect-error experimental html-in-canvas attribute
+				layoutsubtree="true"
+				suppressHydrationWarning
+				style={
+					native
+						? { position: "absolute", inset: 0, width: "100%", height: "100%" }
+						: { display: "none" }
+				}>
+				{native ? (
+					<div
+						ref={contentRef}
+						style={{
+							position: "relative",
+							width: "100%",
+							height: "100%",
+							overflow: "hidden",
+						}}>
+						{children}
+					</div>
+				) : null}
+			</canvas>
+			{!native ? (
+				<div
+					ref={contentRef}
+					style={{
+						position: "relative",
+						width: "100%",
+						height: "100%",
+						overflow: "hidden",
+					}}>
+					{children}
+				</div>
+			) : null}
+			<canvas
+				ref={outputRef}
+				aria-hidden
+				style={{
+					position: "absolute",
+					inset: 0,
+					width: "100%",
+					height: "100%",
+					pointerEvents: "none",
+				}}
+			/>
+		</div>
+	);
 }
-
 
 export default Frost;

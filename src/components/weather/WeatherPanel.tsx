@@ -16,6 +16,15 @@ function celsiusToDisplay(celsius: number, unit: TempUnit): number {
   return unit === "F" ? celsius * (9 / 5) + 32 : celsius;
 }
 
+/** API wind is always km/h; convert for imperial display. */
+function kmhToDisplay(kmh: number, unit: TempUnit): number {
+  return unit === "F" ? kmh * 0.621371 : kmh;
+}
+
+function windSpeedLabel(unit: TempUnit): string {
+  return unit === "F" ? "mph" : "km/h";
+}
+
 type WeatherPanelProps = {
   weather: WeatherPayload;
   theme: AtmosphereTheme;
@@ -63,6 +72,7 @@ export function WeatherPanel({
   const place = [weather.city, weather.country].filter(Boolean).join(", ");
   const displayTemp = Math.round(celsiusToDisplay(weather.temp, unit));
   const displayFeels = Math.round(celsiusToDisplay(weather.feelsLike, unit));
+  const displayWind = Math.round(kmhToDisplay(weather.wind, unit));
 
   useEffect(() => {
     try {
@@ -141,8 +151,8 @@ export function WeatherPanel({
         >
           <span>{place}</span>
           <span>
-            Feels {displayFeels}° · Wind{" "}
-            {Math.round(weather.wind)} km/h · Humidity{" "}
+            Feels {displayFeels}° · Wind {displayWind}{" "}
+            {windSpeedLabel(unit)} · Humidity{" "}
             {Math.round(weather.humidity)}%
           </span>
           <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">

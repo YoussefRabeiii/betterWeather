@@ -53,6 +53,10 @@ export function Credits() {
           <CreditLink href="https://canvasui.dev/">Canvas UI</CreditLink>
           <Dot />
           <CreditLink href="https://cobe.vercel.app/">COBE</CreditLink>
+          <Dot />
+          <CreditLink href="https://bigsoundbank.com/">
+            BigSoundBank (CC0)
+          </CreditLink>
         </span>
       </p>
     </div>

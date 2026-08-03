@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 const USER = "youssefRabeiii";
 
 const LINKS = [
@@ -30,12 +32,13 @@ const LINKS = [
   },
 ] as const;
 
-export function SocialLinks() {
+export function SocialLinks({ leading }: { leading?: ReactNode }) {
   return (
     <nav
       aria-label="Social links"
       className="pointer-events-auto fixed top-5 right-5 z-50 flex items-center gap-1 sm:top-6 sm:right-6 sm:gap-1.5"
     >
+      {leading}
       {LINKS.map((link) => (
         <a
           key={link.label}

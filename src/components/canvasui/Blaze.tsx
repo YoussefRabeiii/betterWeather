@@ -7,6 +7,10 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import {
+  getReducedMotion,
+  subscribeReducedMotion,
+} from "@/lib/reducedMotion";
 
 export interface BlazeOptions {
   /** Height of the blaze zone as a fraction of the screen (0 to 1). */
@@ -603,8 +607,7 @@ export function createBlaze(
   let running = false;
   let visible = true;
 
-  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let reducedMotion = motionQuery.matches;
+  let reducedMotion = getReducedMotion();
 
   function frame(now: number) {
     if (destroyed) return;
@@ -633,11 +636,10 @@ export function createBlaze(
   wake = start;
   start();
 
-  function onMotionChange() {
-    reducedMotion = motionQuery.matches;
+  const unsubMotion = subscribeReducedMotion(() => {
+    reducedMotion = getReducedMotion();
     start();
-  }
-  motionQuery.addEventListener("change", onMotionChange);
+  });
 
   const observer = new ResizeObserver(() => {
     syncCanvasSize();
@@ -666,7 +668,7 @@ export function createBlaze(
       cancelAnimationFrame(raf);
       observer.disconnect();
       intersection.disconnect();
-      motionQuery.removeEventListener("change", onMotionChange);
+      unsubMotion();
       gl!.deleteTexture(contentTexture);
       if (fireTexture) gl!.deleteTexture(fireTexture);
       if (fireFbo) gl!.deleteFramebuffer(fireFbo);
@@ -744,7 +746,7 @@ export function Blaze({ children, className, style, ...options }: BlazeProps) {
               position: "relative",
               width: "100%",
               height: "100%",
-              overflow: "auto",
+              overflow: "hidden",
             }}
           >
             {children}
@@ -758,7 +760,7 @@ export function Blaze({ children, className, style, ...options }: BlazeProps) {
             position: "relative",
             width: "100%",
             height: "100%",
-            overflow: "auto",
+            overflow: "hidden",
           }}
         >
           {children}

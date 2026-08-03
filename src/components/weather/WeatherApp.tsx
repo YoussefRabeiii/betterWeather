@@ -14,8 +14,12 @@ import {
 import { Credits } from "@/components/weather/Credits";
 import { EffectPicker } from "@/components/weather/EffectPicker";
 import { SocialLinks } from "@/components/weather/SocialLinks";
+import { MotionToggle } from "@/components/weather/MotionToggle";
+import { SoundToggle } from "@/components/weather/SoundToggle";
 import { WeatherPanel } from "@/components/weather/WeatherPanel";
 import { WeatherStage } from "@/components/weather/WeatherStage";
+import { useReducedMotionControls } from "@/hooks/usePrefersReducedMotion";
+import { useWeatherAudio } from "@/hooks/useWeatherAudio";
 import { MAJOR_CITIES } from "@/lib/cities";
 import {
 	atmosphereFor,
@@ -85,6 +89,8 @@ export function WeatherApp() {
 	const [isPending, startTransition] = useTransition();
 
 	const activeEffect = effectOverride ?? weather?.effect ?? "blaze";
+	const { enabled: soundOn, toggle: toggleSound } =
+		useWeatherAudio(activeEffect);
 
 	const theme = useMemo(() => {
 		if (!weather) return atmosphereFor("sunny", true);
@@ -235,19 +241,15 @@ export function WeatherApp() {
 
 	return (
 		<div
-			className={`relative h-dvh max-h-dvh transition-[background] duration-700 ${
-				activeEffect === "flame-wrap"
-					? "overflow-x-visible overflow-y-hidden"
-					: "overflow-hidden"
-			}`}
+			className="relative h-dvh max-h-dvh min-h-0 overflow-hidden transition-[background] duration-700"
 			style={{ background: theme.gradient, color: theme.text }}>
 			<WeatherStage
 				weather={weather}
 				effectOverride={effectOverride}
 				backdrop={theme.gradient}
-				className="relative h-full max-h-dvh w-full">
-				<main className="relative z-10 flex h-full max-h-dvh flex-col items-center justify-center overflow-hidden px-0 pb-[6.75rem] pt-2">
-					<section className="mx-auto grid w-full max-w-7xl grid-cols-1 content-center items-center gap-3 px-4 sm:gap-4 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.9fr)] lg:gap-8 lg:px-12">
+				className="relative h-full max-h-dvh min-h-0 w-full">
+				<main className="relative z-10 flex h-full max-h-dvh min-h-0 flex-col items-center justify-center overflow-hidden px-0 pb-[6.75rem] pt-2">
+					<section className="mx-auto grid min-h-0 w-full max-w-7xl grid-cols-1 content-center items-center gap-3 px-4 sm:gap-4 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.9fr)] lg:gap-8 lg:px-12">
 						<div className="flex min-h-0 min-w-0 flex-col justify-center overflow-hidden lg:overflow-visible">
 							{weather ? (
 								<WeatherPanel
@@ -330,7 +332,11 @@ export function WeatherApp() {
 			</WeatherStage>
 
 			<Credits />
-			<SocialLinks />
+			<SocialLinks
+				leading={
+					<SoundToggle enabled={soundOn} onToggle={toggleSound} />
+				}
+			/>
 
 			{weather ? (
 				<EffectPicker

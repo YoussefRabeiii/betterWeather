@@ -7,6 +7,10 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import {
+  getReducedMotion,
+  subscribeReducedMotion,
+} from "@/lib/reducedMotion";
 
 export type ClothPin = "top" | "bottom" | "left" | "right";
 
@@ -518,8 +522,8 @@ export function createCloth(
     const bx1 = Math.min(Math.floor(gx + 2.5 * rx), SEG);
     const by0 = Math.max(Math.ceil(gy - 2.5 * ry), 0);
     const by1 = Math.min(Math.floor(gy + 2.5 * ry), SEG);
-    const lift = 1.1 * Math.min(config.brush, 3) * touch.s;
-    const rate = Math.min(delta * 4, 1);
+    const lift = 1.35 * Math.min(config.brush, 3) * touch.s;
+    const rate = Math.min(delta * 5.2, 1);
     for (let y = by0; y <= by1; y++) {
       const oy = (y - gy) / ry;
       const row = y * NODES;
@@ -657,8 +661,7 @@ export function createCloth(
     }
   }
 
-  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let reducedMotion = motionQuery.matches;
+  let reducedMotion = getReducedMotion();
 
   syncCanvasSize();
   syncBacking();
@@ -750,10 +753,10 @@ export function createCloth(
       gust += (target - gust) * Math.min(delta * 2, 1);
 
       const sTarget = pointer.inside && config.brush > 0 ? 1 : 0;
-      const sRate = pointer.inside ? 8 : 2.5;
+      const sRate = pointer.inside ? 10 : 2.5;
       touch.s += (sTarget - touch.s) * Math.min(delta * sRate, 1);
 
-      const omega = 14;
+      const omega = 16;
       touch.vx +=
         ((pointer.x - touch.x) * omega * omega - 2 * omega * touch.vx) * delta;
       touch.vy +=
@@ -793,11 +796,10 @@ export function createCloth(
   wake = start;
   start();
 
-  function onMotionChange() {
-    reducedMotion = motionQuery.matches;
+  const unsubMotion = subscribeReducedMotion(() => {
+    reducedMotion = getReducedMotion();
     start();
-  }
-  motionQuery.addEventListener("change", onMotionChange);
+  });
 
   let themeTimer = 0;
   function onThemeShift() {
@@ -875,7 +877,7 @@ export function createCloth(
       themeObserver.disconnect();
       schemeQuery.removeEventListener("change", onThemeShift);
       window.clearTimeout(themeTimer);
-      motionQuery.removeEventListener("change", onMotionChange);
+      unsubMotion();
       listenTarget.removeEventListener("pointermove", onPointerMove);
       listenTarget.removeEventListener("pointerleave", onPointerLeave);
       gl!.deleteTexture(contentTexture);
