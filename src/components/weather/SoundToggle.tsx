@@ -13,7 +13,7 @@ export function SoundToggle({ enabled, onToggle }: SoundToggleProps) {
       aria-label={enabled ? "Mute ambient sound" : "Play ambient sound"}
       aria-pressed={enabled}
       title={enabled ? "Mute sounds" : "Enable sounds"}
-      className="inline-flex size-9 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white sm:size-10"
+      className="inline-flex size-8 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white sm:size-9"
     >
       {enabled ? (
         <svg viewBox="0 0 24 24" aria-hidden className="size-4 fill-current">

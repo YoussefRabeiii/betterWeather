@@ -26,8 +26,8 @@ export default function RootLayout({
 	return (
 		<html
 			lang="en"
-			className={`${display.variable} ${sans.variable} h-dvh max-h-dvh overflow-hidden antialiased`}>
-			<body className="h-dvh max-h-dvh overflow-hidden font-sans">{children}</body>
+			className={`${display.variable} ${sans.variable} h-dvh antialiased`}>
+			<body className="h-dvh overflow-hidden font-sans">{children}</body>
 		</html>
 	);
 }

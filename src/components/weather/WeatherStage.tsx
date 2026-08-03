@@ -78,7 +78,8 @@ function Scene({
 	return (
 		<div className="relative h-full w-full overflow-hidden" style={style}>
 			<div className="sky-noise absolute inset-0" aria-hidden />
-			<div className="relative z-10 h-full min-h-0 w-full overflow-hidden">
+			{/* Scrollport lives here so the stage canvas stays viewport-fixed. */}
+			<div className="relative z-10 h-full min-h-0 w-full overflow-x-clip overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable]">
 				{children}
 			</div>
 		</div>

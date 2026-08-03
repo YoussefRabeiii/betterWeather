@@ -13,7 +13,7 @@ export function MotionToggle({ reduced, onToggle }: MotionToggleProps) {
 			aria-label={reduced ? "Enable decorative motion" : "Reduce decorative motion"}
 			aria-pressed={reduced}
 			title={reduced ? "Motion reduced" : "Reduce motion"}
-			className="inline-flex size-9 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white sm:size-10">
+			className="inline-flex size-8 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white sm:size-9">
 			{reduced ? (
 				<svg viewBox="0 0 24 24" aria-hidden className="size-4 fill-current">
 					<path d="M12 2a1 1 0 0 1 1 1v2.07A8.002 8.002 0 0 1 20 13h2a1 1 0 1 1 0 2h-2.07A8.002 8.002 0 0 1 13 22v2a1 1 0 1 1-2 0v-2.07A8.002 8.002 0 0 1 4 15H2a1 1 0 1 1 0-2h2.07A8.002 8.002 0 0 1 11 5.07V3a1 1 0 0 1 1-1zm0 6a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" />

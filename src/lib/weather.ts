@@ -203,6 +203,25 @@ export type AtmosphereTheme = {
 	panelAccent: string;
 };
 
+/** Neutral dusk/steel sky while geo+weather load — avoids sunny-blue flash. */
+export function bootstrapAtmosphere(): AtmosphereTheme {
+	return {
+		gradient:
+			"radial-gradient(ellipse 140% 90% at 50% 0%, #5a6a7c 0%, #2e3a4a 42%, #161e28 78%, #0a0e14 100%)",
+		text: "#f2f6fa",
+		muted: "#c2cedc",
+		accent: "#e8f0f8",
+		glow: "rgba(120, 150, 180, 0.2)",
+		surface: "rgba(12, 18, 26, 0.85)",
+		surfaceBorder: "rgba(220, 230, 245, 0.28)",
+		panelBg:
+			"linear-gradient(180deg, rgba(8,12,18,0.55) 0%, rgba(6,8,12,0.88) 100%)",
+		panelText: "#f4f7fb",
+		panelMuted: "#b7c4d4",
+		panelAccent: "#d7e4f2",
+	};
+}
+
 /** High-contrast forge backdrop so Flame Wrap reads against the page. */
 export function forgeAtmosphere(): AtmosphereTheme {
 	return {

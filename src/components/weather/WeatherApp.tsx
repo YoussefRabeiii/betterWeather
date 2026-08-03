@@ -11,10 +11,10 @@ import {
 	WeatherGlobe,
 	type PinColorMap,
 } from "@/components/globe/WeatherGlobe";
-import { Credits } from "@/components/weather/Credits";
 import { EffectPicker } from "@/components/weather/EffectPicker";
-import { SocialLinks } from "@/components/weather/SocialLinks";
+import { IslandNav } from "@/components/weather/IslandNav";
 import { MotionToggle } from "@/components/weather/MotionToggle";
+import { SiteFooter } from "@/components/weather/SiteFooter";
 import { SoundToggle } from "@/components/weather/SoundToggle";
 import { WeatherPanel } from "@/components/weather/WeatherPanel";
 import { WeatherStage } from "@/components/weather/WeatherStage";
@@ -22,12 +22,13 @@ import { useReducedMotionControls } from "@/hooks/usePrefersReducedMotion";
 import { useWeatherAudio } from "@/hooks/useWeatherAudio";
 import { MAJOR_CITIES } from "@/lib/cities";
 import {
-	atmosphereFor,
+	bootstrapAtmosphere,
 	clothAtmosphere,
 	cloudsAtmosphere,
 	dropletsAtmosphere,
 	forgeAtmosphere,
 	frostAtmosphere,
+	atmosphereFor,
 	pinColorForBucket,
 	type GeoPayload,
 	type WeatherEffect,
@@ -91,9 +92,10 @@ export function WeatherApp() {
 	const activeEffect = effectOverride ?? weather?.effect ?? "blaze";
 	const { enabled: soundOn, toggle: toggleSound } =
 		useWeatherAudio(activeEffect);
+	const { reducedMotion, toggle: toggleMotion } = useReducedMotionControls();
 
 	const theme = useMemo(() => {
-		if (!weather) return atmosphereFor("sunny", true);
+		if (!weather) return bootstrapAtmosphere();
 		if (activeEffect === "flame-wrap") return forgeAtmosphere();
 		if (activeEffect === "frost") return frostAtmosphere();
 		if (activeEffect === "clouds") return cloudsAtmosphere();
@@ -168,7 +170,6 @@ export function WeatherApp() {
 		};
 	}, [loadLocation]);
 
-	// Live weather → distinct pin colors per city (sunny orange, rain blue, snow white…).
 	useEffect(() => {
 		let cancelled = false;
 		(async () => {
@@ -215,7 +216,6 @@ export function WeatherApp() {
 	);
 
 	const markerColor = useMemo((): [number, number, number] => {
-		// Prefer vivid per-effect pin colors so switches read clearly on the globe.
 		const byEffect: Record<string, [number, number, number]> = {
 			blaze: [1, 0.48, 0.12],
 			"flame-wrap": [1, 0.42, 0.1],
@@ -239,18 +239,22 @@ export function WeatherApp() {
 		];
 	}, [markerColor]);
 
+	const flameOverflow =
+		activeEffect === "flame-wrap" ? "overflow-visible" : "overflow-hidden";
+
 	return (
 		<div
-			className="relative h-dvh max-h-dvh min-h-0 overflow-hidden transition-[background] duration-700"
+			className="relative h-dvh max-h-dvh w-full transition-[background] duration-700"
 			style={{ background: theme.gradient, color: theme.text }}>
 			<WeatherStage
 				weather={weather}
 				effectOverride={effectOverride}
 				backdrop={theme.gradient}
-				className="relative h-full max-h-dvh min-h-0 w-full">
-				<main className="relative z-10 flex h-full max-h-dvh min-h-0 flex-col items-center justify-center overflow-hidden px-0 pb-[6.75rem] pt-2">
-					<section className="mx-auto grid min-h-0 w-full max-w-7xl grid-cols-1 content-center items-center gap-3 px-4 sm:gap-4 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.9fr)] lg:gap-8 lg:px-12">
-						<div className="flex min-h-0 min-w-0 flex-col justify-center overflow-hidden lg:overflow-visible">
+				className="absolute inset-0 h-full w-full">
+				<main className="relative z-10 flex min-h-full w-full flex-col px-0 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-[calc(4.25rem+env(safe-area-inset-top))] lg:justify-center lg:pb-6 lg:pt-[calc(4.5rem+env(safe-area-inset-top))]">
+					<section className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 content-start items-start gap-6 px-4 sm:gap-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.9fr)] lg:content-center lg:items-center lg:gap-8 lg:px-12 lg:pl-[calc(11rem+env(safe-area-inset-left))]">
+						<div
+							className={`flex min-w-0 flex-col justify-center ${flameOverflow} lg:-translate-x-8 lg:overflow-visible`}>
 							{weather ? (
 								<WeatherPanel
 									weather={weather}
@@ -266,7 +270,7 @@ export function WeatherApp() {
 										border: `1px solid ${theme.surfaceBorder}`,
 										color: theme.text,
 									}}>
-									<p className="font-[family-name:var(--font-display)] text-4xl tracking-tight sm:text-5xl">
+									<p className="hidden font-[family-name:var(--font-display)] text-4xl tracking-tight sm:text-5xl lg:block">
 										betterWeather
 									</p>
 									<p className="font-medium" style={{ color: theme.muted }}>
@@ -285,7 +289,7 @@ export function WeatherApp() {
 
 						<div
 							id="globe"
-							className="flex min-h-0 min-w-0 flex-col items-center justify-center gap-2 sm:gap-3">
+							className="flex min-w-0 flex-col items-center justify-center gap-3 sm:gap-4">
 							<WeatherGlobe
 								activeCityId={activeCityId}
 								focusLat={weather?.lat}
@@ -294,10 +298,10 @@ export function WeatherApp() {
 								pinColors={pinColors}
 								markerColor={markerColor}
 								glowColor={glowColor}
-								className="aspect-square w-[min(100%,52dvh,500px)]"
+								className="aspect-square w-[min(100%,42dvh,360px)] lg:w-[min(100%,52dvh,500px)]"
 							/>
 
-							<div className="mx-auto flex w-[min(100%,42dvh,400px)] flex-wrap justify-center gap-x-1.5 gap-y-2.5 pb-1">
+							<div className="mx-auto flex w-full max-w-md flex-wrap justify-center gap-x-1.5 gap-y-2.5 pb-1 lg:w-[min(100%,42dvh,400px)]">
 								{MAJOR_CITIES.map((city) => {
 									const active = city.id === activeCityId;
 									return (
@@ -328,24 +332,28 @@ export function WeatherApp() {
 							</div>
 						</div>
 					</section>
+
+					<SiteFooter glow={theme.glow} />
 				</main>
 			</WeatherStage>
 
-			<Credits />
-			<SocialLinks
+			<IslandNav
+				glow={theme.glow}
 				leading={
-					<SoundToggle enabled={soundOn} onToggle={toggleSound} />
+					<>
+						<SoundToggle enabled={soundOn} onToggle={toggleSound} />
+						<MotionToggle reduced={reducedMotion} onToggle={toggleMotion} />
+					</>
 				}
 			/>
 
-			{weather ? (
-				<EffectPicker
-					active={weather.effect}
-					override={effectOverride}
-					theme={theme}
-					onSelect={setEffectOverride}
-				/>
-			) : null}
+			<EffectPicker
+				active={weather?.effect ?? "blaze"}
+				override={effectOverride}
+				theme={theme}
+				onSelect={setEffectOverride}
+				visible={Boolean(weather)}
+			/>
 		</div>
 	);
 }

@@ -124,15 +124,11 @@
 	}
 	html {
 		@apply font-sans scroll-smooth;
-		height: 100dvh;
-		max-height: 100dvh;
-		overflow: hidden;
-		overscroll-behavior: none;
+		height: 100%;
 	}
 	body {
 		@apply bg-background text-foreground;
-		height: 100dvh;
-		max-height: 100dvh;
+		height: 100%;
 		overflow: hidden;
 		overscroll-behavior: none;
 	}

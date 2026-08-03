@@ -15,6 +15,8 @@ type EffectPickerProps = {
 	override: WeatherEffect | null;
 	theme: AtmosphereTheme;
 	onSelect: (effect: WeatherEffect | null) => void;
+	/** When false, keep the island hidden (avoids layout jump). */
+	visible?: boolean;
 };
 
 export function EffectPicker({
@@ -22,6 +24,7 @@ export function EffectPicker({
 	override,
 	theme,
 	onSelect,
+	visible = true,
 }: EffectPickerProps) {
 	const selected = override ?? active;
 	const htmlInCanvas = useSyncExternalStore(
@@ -32,17 +35,22 @@ export function EffectPicker({
 
 	return (
 		<div
-			className="fixed bottom-4 left-1/2 z-50 w-[min(960px,calc(100%-1.5rem))] -translate-x-1/2 rounded-2xl border px-3 py-3 shadow-2xl backdrop-blur-xl sm:px-4"
+			className={`fixed z-50 border shadow-2xl backdrop-blur-xl transition-opacity duration-500 bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 w-[min(960px,calc(100%-1.5rem))] -translate-x-1/2 rounded-2xl px-3 py-3 sm:px-4 lg:bottom-auto lg:left-[max(0.75rem,env(safe-area-inset-left))] lg:top-1/2 lg:w-auto lg:max-w-[13.5rem] lg:translate-x-0 lg:-translate-y-1/2 ${
+				visible
+					? "pointer-events-auto opacity-100"
+					: "pointer-events-none opacity-0"
+			}`}
 			style={{
 				background: "rgba(8, 12, 18, 0.82)",
 				borderColor: "rgba(255,255,255,0.14)",
 				color: "#f4f7fb",
 				boxShadow: `0 16px 50px ${theme.glow}`,
-			}}>
-			<div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-1">
-				<div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+			}}
+			aria-hidden={!visible}>
+			<div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-1 lg:flex-col lg:items-stretch lg:gap-2">
+				<div className="flex flex-wrap items-center gap-x-3 gap-y-1 lg:flex-col lg:items-start lg:gap-1.5">
 					<p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
-						Test effects
+						Effects
 					</p>
 					<p
 						className="inline-flex items-center gap-1.5 text-[11px] font-medium"
@@ -61,21 +69,28 @@ export function EffectPicker({
 							}}
 							aria-hidden
 						/>
-						<span style={{ color: htmlInCanvas ? "#b8f0c8" : "#ffd2a8" }}>
-							html-in-canvas {htmlInCanvas ? "available" : "not available"}
+						<span
+							className="lg:leading-snug"
+							style={{ color: htmlInCanvas ? "#b8f0c8" : "#ffd2a8" }}>
+							<span className="lg:hidden">
+								html-in-canvas {htmlInCanvas ? "available" : "not available"}
+							</span>
+							<span className="hidden lg:inline">
+								{htmlInCanvas ? "canvas ok" : "fallback"}
+							</span>
 						</span>
 					</p>
 				</div>
 				<button
 					type="button"
 					onClick={() => onSelect(null)}
-					className="text-xs font-medium text-white/80 underline-offset-2 transition hover:text-white hover:underline disabled:no-underline disabled:opacity-40"
-					disabled={override === null}>
+					className="text-left text-xs font-medium text-white/80 underline-offset-2 transition hover:text-white hover:underline disabled:no-underline disabled:opacity-40"
+					disabled={override === null || !visible}>
 					Use live weather
 				</button>
 			</div>
 			{!htmlInCanvas ? (
-				<p className="mb-2 px-1 text-[11px] leading-snug text-white/55">
+				<p className="mb-2 px-1 text-[11px] leading-snug text-white/55 lg:hidden">
 					Full glass refraction needs Chrome with{" "}
 					<span className="text-white/80">
 						chrome://flags/#canvas-draw-element
@@ -83,7 +98,7 @@ export function EffectPicker({
 					enabled, then restart. Fallback capture is active until then.
 				</p>
 			) : null}
-			<div className="flex flex-wrap gap-2">
+			<div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible lg:mx-0 lg:flex-col lg:flex-nowrap lg:gap-1.5 lg:overflow-visible lg:px-0 lg:pb-0">
 				{WEATHER_EFFECTS.map((effect) => {
 					const isOn = selected === effect.id;
 					const isLive = override === null && active === effect.id;
@@ -92,7 +107,8 @@ export function EffectPicker({
 							key={effect.id}
 							type="button"
 							onClick={() => onSelect(effect.id)}
-							className="rounded-full px-3 py-1.5 text-sm font-medium transition"
+							disabled={!visible}
+							className="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition lg:w-full lg:rounded-xl lg:px-3 lg:py-2 lg:text-left"
 							style={{
 								background: isOn
 									? "rgba(255,255,255,0.22)"

@@ -88,8 +88,9 @@ export function WeatherPanel({
 			className="relative z-10 flex flex-col items-start gap-3.5 sm:gap-4.5"
 			style={{ color: theme.text }}
 			aria-busy={loading || undefined}>
+			{/* Island nav carries the mark on small screens — keep hero brand for lg+. */}
 			<p
-				className="animate-rise-in font-[family-name:var(--font-display)] text-[2.0625rem] leading-none tracking-tight sm:text-[2.475rem] lg:text-[3.3rem]"
+				className="animate-rise-in hidden font-[family-name:var(--font-display)] text-[2.0625rem] leading-none tracking-tight sm:text-[2.475rem] lg:block lg:text-[3.3rem]"
 				style={{ textShadow: `0 0 60px ${theme.glow}` }}>
 				betterWeather
 			</p>
