@@ -50,8 +50,9 @@
 }
 
 :root {
-	--background: oklch(1 0 0);
-	--foreground: oklch(0.145 0 0);
+	/* Match app sky so first paint isn't a white flash before hydration. */
+	--background: #0a0e14;
+	--foreground: #f2f6fa;
 	--card: oklch(1 0 0);
 	--card-foreground: oklch(0.145 0 0);
 	--popover: oklch(1 0 0);

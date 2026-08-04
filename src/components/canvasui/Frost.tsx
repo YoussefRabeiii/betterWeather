@@ -44,9 +44,9 @@ export interface FrostOptions {
 	textureScale?: number;
 	/** Fresnel boost at grazing angles (0-2). */
 	fresnel?: number;
-	/** Radius of the melt spot under the cursor (0-1, fraction of height). */
+	/** Radius of the melt snowflake under the cursor (0-1, fraction of height). */
 	meltRadius?: number;
-	/** Irregularity of the melt edge. 0 is a clean circle. */
+	/** Irregularity of the melt edge. 0 is a clean snowflake silhouette. */
 	meltNoise?: number;
 	/** How quickly hovering melts the frost (0-1). */
 	meltStrength?: number;
@@ -277,6 +277,34 @@ float sdSegment (vec2 p, vec2 a, vec2 b) {
   float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
   return length(pa - ba * h);
 }
+/** 6-fold snowflake in unit space (tips near |p| ≈ 1). Negative = inside. */
+float sdSnowflake (vec2 p) {
+  const float PI = 3.14159265359;
+  float an = PI / 3.0;
+  float ang = atan(p.y, p.x);
+  ang = mod(ang + an * 0.5, an) - an * 0.5;
+  vec2 q = vec2(cos(ang), sin(ang)) * length(p);
+
+  float d = sdSegment(q, vec2(0.0), vec2(1.0, 0.0)) - 0.055;
+  d = min(d, sdSegment(q, vec2(0.38, 0.0), vec2(0.58, 0.26)) - 0.038);
+  d = min(d, sdSegment(q, vec2(0.38, 0.0), vec2(0.58, -0.26)) - 0.038);
+  d = min(d, sdSegment(q, vec2(0.68, 0.0), vec2(0.86, 0.17)) - 0.032);
+  d = min(d, sdSegment(q, vec2(0.68, 0.0), vec2(0.86, -0.17)) - 0.032);
+  d = min(d, length(q) - 0.13);
+  d = min(d, length(q - vec2(1.0, 0.0)) - 0.07);
+  return d;
+}
+float hash21 (vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+float snowflakeAt (vec2 p, vec2 center, float radius) {
+  vec2 local = (p - center) / max(radius, 1e-4);
+  float rot = hash21(floor(center * 40.0)) * 6.2831853;
+  float c = cos(rot);
+  float s = sin(rot);
+  local = mat2(c, -s, s, c) * local;
+  return sdSnowflake(local);
+}
 void main () {
   vec2 backUv = vUv + uBackShift;
   vec4 back = texture(uBack, backUv);
@@ -292,10 +320,19 @@ void main () {
   vec2 p = vUv * vec2(uAspect, 1.0);
   vec2 a = uPrevPoint * vec2(uAspect, 1.0);
   vec2 b = uPoint * vec2(uAspect, 1.0);
-  float d = sdSegment(p, a, b) + n * uMeltNoise;
 
-  float m =
-    (1.0 - smoothstep(uRadius * 0.35, uRadius, d)) * uMeltStrength;
+  // Stamp snowflake shapes (not a circular blob) along the pointer path.
+  float d = snowflakeAt(p, b, uRadius);
+  d = min(d, snowflakeAt(p, a, uRadius));
+  float gap = distance(a, b);
+  if (gap > uRadius * 0.55) {
+    d = min(d, snowflakeAt(p, mix(a, b, 0.5), uRadius));
+  }
+  // Keep edge irregularity subtle so the silhouette stays readable.
+  d += n * uMeltNoise * 0.35;
+
+  float soft = 0.08 + uMeltNoise * 0.06;
+  float m = (1.0 - smoothstep(0.0, soft, d)) * uMeltStrength;
   vec2 dSide = min(vUv, 1.0 - vUv);
   float side = smoothstep(0.0, max(uEdgeFade, 1e-4), min(dSide.x, dSide.y));
   m *= mix(1.0, side, step(1e-3, uEdgeFade));

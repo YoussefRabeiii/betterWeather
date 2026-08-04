@@ -22,7 +22,6 @@ import { useReducedMotionControls } from "@/hooks/usePrefersReducedMotion";
 import { useWeatherAudio } from "@/hooks/useWeatherAudio";
 import { MAJOR_CITIES } from "@/lib/cities";
 import {
-	bootstrapAtmosphere,
 	clothAtmosphere,
 	cloudsAtmosphere,
 	dropletsAtmosphere,
@@ -30,10 +29,60 @@ import {
 	frostAtmosphere,
 	atmosphereFor,
 	pinColorForBucket,
+	type AtmosphereTheme,
 	type GeoPayload,
 	type WeatherEffect,
 	type WeatherPayload,
 } from "@/lib/weather";
+
+function LoadingPanel({ theme }: { theme: AtmosphereTheme }) {
+	return (
+		<div
+			className="relative max-w-[39.6rem] px-6 py-6 sm:px-8 sm:py-7"
+			style={{
+				background: "rgba(12, 18, 26, 0.96)",
+				border: `1px solid ${theme.surfaceBorder}`,
+				borderRadius: 31,
+				boxShadow: "0 16px 40px rgba(15, 25, 40, 0.28)",
+				color: theme.text,
+			}}
+			aria-busy
+			aria-live="polite">
+			<p className="hidden font-[family-name:var(--font-display)] text-[2.0625rem] font-bold leading-none tracking-tight sm:text-[2.475rem] lg:block lg:text-[3.3rem]">
+				Better Weather
+			</p>
+			<div className="mt-3.5 flex flex-col gap-3 sm:mt-4.5">
+				<div
+					className="h-6 w-48 max-w-full animate-pulse rounded-md sm:h-7 sm:w-64"
+					style={{ background: "rgba(255,255,255,0.12)" }}
+				/>
+				<div
+					className="hidden h-4 w-72 max-w-full animate-pulse rounded-md sm:block"
+					style={{ background: "rgba(255,255,255,0.08)" }}
+				/>
+				<div className="mt-1 flex items-end gap-6">
+					<div
+						className="h-14 w-24 animate-pulse rounded-lg sm:h-16 sm:w-28"
+						style={{ background: "rgba(255,255,255,0.14)" }}
+					/>
+					<div className="flex flex-col gap-2 pb-1">
+						<div
+							className="h-3.5 w-36 animate-pulse rounded-md"
+							style={{ background: "rgba(255,255,255,0.1)" }}
+						/>
+						<div
+							className="h-3.5 w-44 animate-pulse rounded-md"
+							style={{ background: "rgba(255,255,255,0.08)" }}
+						/>
+					</div>
+				</div>
+			</div>
+			<p className="mt-4 text-sm font-medium" style={{ color: theme.muted }}>
+				Reading the sky…
+			</p>
+		</div>
+	);
+}
 
 function hexToRgb01(hex: string): [number, number, number] | null {
 	const m = hex
@@ -79,9 +128,22 @@ async function fetchWeather(params: {
 	return res.json() as Promise<WeatherPayload>;
 }
 
-export function WeatherApp() {
-	const [weather, setWeather] = useState<WeatherPayload | null>(null);
-	const [activeCityId, setActiveCityId] = useState<string | null>(null);
+type WeatherAppProps = {
+	/** Server-resolved weather so first paint is real, not a stub. */
+	initialWeather?: WeatherPayload | null;
+	initialCityId?: string | null;
+};
+
+export function WeatherApp({
+	initialWeather = null,
+	initialCityId = null,
+}: WeatherAppProps) {
+	const [weather, setWeather] = useState<WeatherPayload | null>(
+		initialWeather,
+	);
+	const [activeCityId, setActiveCityId] = useState<string | null>(
+		initialCityId,
+	);
 	const [pinColors, setPinColors] = useState<PinColorMap>({});
 	const [effectOverride, setEffectOverride] = useState<WeatherEffect | null>(
 		null,
@@ -89,13 +151,13 @@ export function WeatherApp() {
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
 
-	const activeEffect = effectOverride ?? weather?.effect ?? "blaze";
+	const activeEffect = effectOverride ?? weather?.effect ?? "clouds";
 	const { enabled: soundOn, toggle: toggleSound } =
 		useWeatherAudio(activeEffect);
 	const { reducedMotion, toggle: toggleMotion } = useReducedMotionControls();
 
 	const theme = useMemo(() => {
-		if (!weather) return bootstrapAtmosphere();
+		if (!weather) return cloudsAtmosphere();
 		if (activeEffect === "flame-wrap") return forgeAtmosphere();
 		if (activeEffect === "frost") return frostAtmosphere();
 		if (activeEffect === "clouds") return cloudsAtmosphere();
@@ -130,6 +192,9 @@ export function WeatherApp() {
 	);
 
 	useEffect(() => {
+		// SSR already painted real weather — skip the empty-stub client boot.
+		if (initialWeather) return;
+
 		let cancelled = false;
 
 		(async () => {
@@ -168,7 +233,7 @@ export function WeatherApp() {
 		return () => {
 			cancelled = true;
 		};
-	}, [loadLocation]);
+	}, [initialWeather, loadLocation]);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -244,7 +309,7 @@ export function WeatherApp() {
 		activeEffect === "flame-wrap" ? "overflow-visible" : "overflow-hidden";
 
 	const effectPickerProps = {
-		active: weather?.effect ?? ("blaze" as WeatherEffect),
+		active: weather?.effect ?? ("clouds" as WeatherEffect),
 		override: effectOverride,
 		theme,
 		onSelect: setEffectOverride,
@@ -278,26 +343,7 @@ export function WeatherApp() {
 									loading={isPending}
 								/>
 							) : (
-								<div
-									className="flex max-w-xl flex-col gap-3 rounded-[28px] px-5 py-6 sm:px-7"
-									style={{
-										background: theme.surface.replace(
-											/rgba?\(([^)]+)\)/,
-											(_, inner: string) => {
-												const p = inner.split(",").map((s) => s.trim());
-												return `rgba(${p[0]}, ${p[1]}, ${p[2]}, 0.96)`;
-											},
-										),
-										border: `1px solid ${theme.surfaceBorder}`,
-										color: theme.text,
-									}}>
-									<p className="hidden font-[family-name:var(--font-display)] text-4xl font-bold tracking-tight sm:text-5xl lg:block">
-										Better Weather
-									</p>
-									<p className="font-medium" style={{ color: theme.muted }}>
-										Finding your sky…
-									</p>
-								</div>
+								<LoadingPanel theme={theme} />
 							)}
 							{error ? (
 								<p
@@ -330,7 +376,7 @@ export function WeatherApp() {
 											key={city.id}
 											type="button"
 											onClick={() => selectCity(city.id)}
-											className="rounded-full px-2.5 py-1 text-xs font-semibold transition sm:text-sm"
+											className="cursor-pointer rounded-full px-2.5 py-1 text-xs font-semibold transition sm:text-sm"
 											style={{
 												background: active
 													? "rgba(255,255,255,0.95)"

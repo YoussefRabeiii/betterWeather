@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { FlameWrap } from "@/components/canvasui/FlameWrap";
+import { formatCityTime, MAJOR_CITIES } from "@/lib/cities";
 import {
 	celsiusToDisplay,
 	TEMP_UNIT_KEY,
@@ -54,6 +55,17 @@ function ReadoutShell({
 	);
 }
 
+function resolveTimezone(weather: WeatherPayload): string | undefined {
+	if (weather.timezone) return weather.timezone;
+	const match = MAJOR_CITIES.find(
+		(c) =>
+			c.name.toLowerCase() === weather.city.toLowerCase() ||
+			(Math.abs(c.lat - weather.lat) < 0.2 &&
+				Math.abs(c.lon - weather.lon) < 0.2),
+	);
+	return match?.timezone;
+}
+
 export function WeatherPanel({
 	weather,
 	theme,
@@ -61,11 +73,14 @@ export function WeatherPanel({
 	loading,
 }: WeatherPanelProps) {
 	const [unit, setUnit] = useState<TempUnit>("C");
+	const [now, setNow] = useState(() => new Date());
 	const place = [weather.city, weather.country].filter(Boolean).join(", ");
 	const displayTemp = Math.round(celsiusToDisplay(weather.temp, unit));
 	const displayFeels = Math.round(celsiusToDisplay(weather.feelsLike, unit));
 	const displayWind = Math.round(windKmhToDisplay(weather.wind, unit));
 	const windLabel = windUnitLabel(unit);
+	const timezone = resolveTimezone(weather);
+	const localTime = timezone ? formatCityTime(timezone, now) : null;
 
 	useEffect(() => {
 		try {
@@ -74,6 +89,11 @@ export function WeatherPanel({
 		} catch {
 			// ignore unavailable storage
 		}
+	}, []);
+
+	useEffect(() => {
+		const id = window.setInterval(() => setNow(new Date()), 30_000);
+		return () => window.clearInterval(id);
 	}, []);
 
 	const toggleUnit = () => {
@@ -135,7 +155,15 @@ export function WeatherPanel({
 				<div
 					className="flex flex-col gap-0.5 pb-0.5 text-[0.9625rem] font-medium"
 					style={{ color: theme.muted }}>
-					<span>{place}</span>
+					<span>
+						{place}
+						{localTime ? (
+							<>
+								{" · "}
+								<span className="tabular-nums">{localTime}</span>
+							</>
+						) : null}
+					</span>
 					<span>
 						Feels {displayFeels}° · Wind {displayWind} {windLabel} ·
 						Humidity {Math.round(weather.humidity)}%

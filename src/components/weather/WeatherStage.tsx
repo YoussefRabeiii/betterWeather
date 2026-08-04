@@ -46,6 +46,23 @@ const FILL = {
 	style: { height: "100%", width: "100%" } as const,
 };
 
+/** Placeholder weather so the stage can mount Clouds before live data arrives. */
+const BOOTSTRAP_WEATHER: WeatherPayload = {
+	city: "",
+	lat: 0,
+	lon: 0,
+	temp: 0,
+	feelsLike: 0,
+	humidity: 0,
+	wind: 0,
+	precip: 0,
+	code: 2,
+	label: "",
+	bucket: "cloudy",
+	effect: "clouds",
+	isDay: true,
+};
+
 /** Full-bleed scenery that lives inside the canvas content tree. */
 function Scene({
 	backdrop,
@@ -275,9 +292,9 @@ function effectOptions(
 			detail: 2.2,
 			textureScale: 2,
 			fresnel: 0.9,
-			meltRadius: isMobile ? 0.16 : 0.28,
-			meltNoise: 0.3,
-			meltStrength: 0.8,
+			meltRadius: isMobile ? 0.2 : 0.32,
+			meltNoise: 0.12,
+			meltStrength: 0.85,
 			refreeze: 10,
 			edgeFade: 0.12,
 			meltEdges: !reducedMotion,
@@ -334,16 +351,10 @@ export function WeatherStage({
 		() => false,
 	);
 
-	if (!weather) {
-		return (
-			<div {...layout}>
-				<Scene backdrop={backdrop}>{children}</Scene>
-			</div>
-		);
-	}
-
-	const effect = effectOverride ?? weather.effect;
-	const opts = effectOptions(weather, reducedMotion, isMobile);
+	// While weather is still resolving, mount Clouds so first paint isn't a flat void.
+	const activeWeather = weather ?? BOOTSTRAP_WEATHER;
+	const effect = effectOverride ?? activeWeather.effect;
+	const opts = effectOptions(activeWeather, reducedMotion, isMobile);
 
 	const scene = (extra?: { photo?: string; overlay?: string }) => (
 		<Scene backdrop={backdrop} photo={extra?.photo} overlay={extra?.overlay}>

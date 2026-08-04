@@ -27,8 +27,13 @@ export default function RootLayout({
 	return (
 		<html
 			lang="en"
-			className={`${display.variable} ${sans.variable} h-dvh antialiased`}>
-			<body className="h-dvh overflow-hidden font-sans">{children}</body>
+			className={`${display.variable} ${sans.variable} h-dvh antialiased`}
+			style={{ backgroundColor: "#0a0e14", colorScheme: "dark" }}>
+			<body
+				className="h-dvh overflow-hidden font-sans"
+				style={{ backgroundColor: "#0a0e14" }}>
+				{children}
+			</body>
 		</html>
 	);
 }

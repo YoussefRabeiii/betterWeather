@@ -39,6 +39,8 @@ export type WeatherPayload = {
 	bucket: WeatherBucket;
 	effect: WeatherEffect;
 	isDay: boolean;
+	/** IANA timezone for the location's local clock (from Open-Meteo). */
+	timezone?: string;
 };
 
 /** UI temperature preference — also drives wind speed units (°F → mph, °C → km/h). */
@@ -168,6 +170,7 @@ export function normalizeWeather(input: {
 	precip: number;
 	code: number;
 	isDay: boolean;
+	timezone?: string;
 }): WeatherPayload {
 	const { label } = interpretWeatherCode(input.code);
 	const bucket = resolveBucket({
