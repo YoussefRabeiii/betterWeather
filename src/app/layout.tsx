@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const display = Space_Grotesk({
@@ -14,9 +15,50 @@ const sans = Manrope({
 });
 
 export const metadata: Metadata = {
-	title: "Better Weather",
-	description:
-		"A canvas-powered weather experience — live conditions as Flame, Frost, Droplets, Clouds, Cloth, and Blaze.",
+	metadataBase: new URL(SITE_URL),
+	title: {
+		default: SITE_NAME,
+		template: `%s · ${SITE_NAME}`,
+	},
+	description: SITE_DESCRIPTION,
+	applicationName: SITE_NAME,
+	keywords: [
+		"weather",
+		"canvas",
+		"Better Weather",
+		"live weather",
+		"frost",
+		"rain",
+		"globe",
+	],
+	authors: [{ name: "Youssef Rabei", url: "https://github.com/YoussefRabeiii" }],
+	creator: "Youssef Rabei",
+	alternates: {
+		canonical: "/",
+	},
+	openGraph: {
+		type: "website",
+		locale: "en_US",
+		url: "/",
+		siteName: SITE_NAME,
+		title: SITE_NAME,
+		description: SITE_DESCRIPTION,
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: SITE_NAME,
+		description: SITE_DESCRIPTION,
+	},
+	robots: {
+		index: true,
+		follow: true,
+	},
+	category: "weather",
+};
+
+export const viewport: Viewport = {
+	themeColor: "#0a0e14",
+	colorScheme: "dark",
 };
 
 export default function RootLayout({
