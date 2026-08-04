@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -75,6 +76,7 @@ export default function RootLayout({
 				className="h-dvh overflow-hidden font-sans"
 				style={{ backgroundColor: "#0a0e14" }}>
 				{children}
+				<Analytics />
 			</body>
 		</html>
 	);
